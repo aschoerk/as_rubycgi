@@ -1,0 +1,98 @@
+http://openrouteservice.org/index.php?start=8.3866078,49.0263935&end=8.3890969,49.0447374&via=8.3881528,49.0268437%208.3881957,49.0294607&pref=Fastest&lang=en&noMotorways=false&noTollways=false
+
+
+
+
+<xls:XLS xmlns:xls="http://www.opengis.net/xls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" version="1.1" xsi:schemaLocation="http://www.opengis.net/xls http://schemas.opengis.net/ols/1.1.0/RouteService.xsd">
+  <xls:ResponseHeader xsi:type="xls:ResponseHeaderType"/>
+  <xls:Response xsi:type="xls:ResponseType" requestID="123456789" version="1.1" numberOfResponses="1">
+    <xls:DetermineRouteResponse xsi:type="xls:DetermineRouteResponseType">
+      <xls:RouteSummary>
+        <xls:TotalTime>PT30M20S</xls:TotalTime>
+        <xls:TotalDistance uom="KM" value="2.4"/>
+        <xls:BoundingBox srsName="EPSG:4326">
+          <gml:pos>8.3866078 49.0263935</gml:pos>
+          <gml:pos>8.3896728 49.0447374</gml:pos>
+        </xls:BoundingBox>
+      </xls:RouteSummary>
+      <xls:RouteGeometry>
+        <gml:LineString srsName="EPSG:4326">
+          <gml:pos>8.3866078 49.0263935</gml:pos>
+          <gml:pos>8.386620605005414 49.0265395177125</gml:pos>
+          <gml:pos>8.3870986 49.0264976</gml:pos>
+          <gml:pos>8.387691 49.0264387</gml:pos>
+          <gml:pos>8.387938 49.026411</gml:pos>
+          <gml:pos>8.3880429 49.0264063</gml:pos>
+          <gml:pos>8.3880561 49.0264596</gml:pos>
+          <gml:pos>8.388150891611188 49.026844170393076</gml:pos>
+          <gml:pos>8.3881528 49.0268437</gml:pos>
+          <gml:pos>8.388150891611188 49.026844170393076</gml:pos>
+          <gml:pos>8.3882052 49.0270645</gml:pos>
+          <gml:pos>8.3882233 49.0271376</gml:pos>
+          <gml:pos>8.3881088 49.0271473</gml:pos>
+          <gml:pos>8.3877944 49.0271769</gml:pos>
+          <gml:pos>8.3878573 49.0274655</gml:pos>
+          <gml:pos>8.3878969 49.0276494</gml:pos>
+          <gml:pos>8.3882368 49.0291472</gml:pos>
+          <gml:pos>8.388300928766617 49.029437450455</gml:pos>
+          <gml:pos>8.3881957 49.0294607</gml:pos>
+          <gml:pos>8.388300928766617 49.029437450455</gml:pos>
+          <gml:pos>8.3882368 49.0291472</gml:pos>
+          <gml:pos>8.3869467 49.0292322</gml:pos>
+          <gml:pos>8.3870754 49.0298389</gml:pos>
+          <gml:pos>8.387105 49.0299785</gml:pos>
+          <gml:pos>8.3870483 49.0299853</gml:pos>
+          <gml:pos>8.3871567 49.0304621</gml:pos>
+          <gml:pos>8.3869415 49.0307969</gml:pos>
+          <gml:pos>8.3869744 49.0309621</gml:pos>
+          <gml:pos>8.386924 49.0309826</gml:pos>
+          <gml:pos>8.3868938 49.0309923</gml:pos>
+          <gml:pos>8.3868413 49.0309965</gml:pos>
+          <gml:pos>8.3869852 49.031723</gml:pos>
+          <gml:pos>8.3869989 49.0317916</gml:pos>
+          <gml:pos>8.3870021 49.0318917</gml:pos>
+          <gml:pos>8.3870071 49.0319297</gml:pos>
+          <gml:pos>8.3873347 49.0334647</gml:pos>
+          <gml:pos>8.3874372 49.0339338</gml:pos>
+          <gml:pos>8.3874362 49.0340241</gml:pos>
+          <gml:pos>8.3874719 49.0341643</gml:pos>
+          <gml:pos>8.3875034 49.0342927</gml:pos>
+          <gml:pos>8.3875312 49.0343665</gml:pos>
+          <gml:pos>8.3876451 49.034895</gml:pos>
+          <gml:pos>8.3876475 49.0349792</gml:pos>
+          <gml:pos>8.3876597 49.0350385</gml:pos>
+          <gml:pos>8.3876633 49.0350557</gml:pos>
+          <gml:pos>8.3876768 49.0351124</gml:pos>
+          <gml:pos>8.3877076 49.0351963</gml:pos>
+          <gml:pos>8.3877446 49.0353663</gml:pos>
+          <gml:pos>8.3878526 49.0358638</gml:pos>
+          <gml:pos>8.3878484 49.0360397</gml:pos>
+          <gml:pos>8.388083 49.036846</gml:pos>
+          <gml:pos>8.3880973 49.0368882</gml:pos>
+          <gml:pos>8.3881535 49.0369511</gml:pos>
+          <gml:pos>8.3882676 49.0373463</gml:pos>
+          <gml:pos>8.3883095 49.0375071</gml:pos>
+          <gml:pos>8.388533 49.038562</gml:pos>
+          <gml:pos>8.3891242 49.0412919</gml:pos>
+          <gml:pos>8.3892586 49.0419018</gml:pos>
+          <gml:pos>8.3891449 49.0420473</gml:pos>
+          <gml:pos>8.3891611 49.0422319</gml:pos>
+          <gml:pos>8.3891449 49.0423532</gml:pos>
+          <gml:pos>8.3891182 49.0425132</gml:pos>
+          <gml:pos>8.3891155 49.0426152</gml:pos>
+          <gml:pos>8.3891274 49.0427266</gml:pos>
+          <gml:pos>8.3892089 49.0430893</gml:pos>
+          <gml:pos>8.3892241 49.0431163</gml:pos>
+          <gml:pos>8.3892507 49.043141</gml:pos>
+          <gml:pos>8.3893111 49.0431915</gml:pos>
+          <gml:pos>8.3893416 49.0432271</gml:pos>
+          <gml:pos>8.389363 49.0432672</gml:pos>
+          <gml:pos>8.3896728 49.0446815</gml:pos>
+          <gml:pos>8.3891829 49.0447022</gml:pos>
+          <gml:pos>8.389094422615125 49.044710283305996</gml:pos>
+          <gml:pos>8.3890969 49.0447374</gml:pos>
+        </gml:LineString>
+      </xls:RouteGeometry>
+    </xls:DetermineRouteResponse>
+  </xls:Response>
+</xls:XLS>

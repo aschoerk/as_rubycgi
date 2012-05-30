@@ -1,0 +1,21 @@
+Post http://www.gpsvisualizer.com/map?output_home
+
+
+Antwort-Header Quelltext anzeigen
+Content-Type	text/html; charset=UTF-8
+Date	Wed, 30 May 2012 07:05:49 GMT
+Server	Apache/2.2.3 (CentOS)
+Transfer-Encoding	chunked
+
+Anfrage-HeaderQuelltext anzeigen
+Accept	text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Encoding	gzip, deflate
+Accept-Language	en-us,en;q=0.5
+Connection	keep-alive
+Cookie	__utma=68791495.1413652427.1337272380.1338358850.1338361447.6; __utmz=68791495.1338024401.3.3.utmccn=(referral)|utmcsr=tom-carden.co.uk|utmcct=/googlegpx/|utmcmd=referral; __utmc=68791495; __utmb=68791495
+Host	www.gpsvisualizer.com
+Referer	http://www.gpsvisualizer.com/
+User-Agent	Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0
+Request Headers From Upload Stream
+Content-Length	21678
+Content-Type	multipart/form-data; boundary=---------------------------4942265942140512411826475219

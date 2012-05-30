@@ -1,0 +1,885 @@
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta name="description" content="OpenStreetMap Routing - Free OpenLS Route Service with Free OpenStreetMap Data - Free Routing Service with Free OSM Data. Based on open standards by the Open Geospatial Consortium (OGC)."><meta name="author" content="Pascal Neis, Uni Heidelberg"><meta name="date" content="2010-12-15T20:00:01+01:00"><meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"><link rel="stylesheet" href="theme/default/style.css" type="text/css"/><script type="text/javascript" src="lib/OpenLayers.js"></script> <!-- <script src="http://openlayers.org/api/OpenLayers.js"></script> --><!-- <script src="http://openlayers.org/api/OpenLayers.js"></script> --><!-- <script type="text/javascript" src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script> --><script type="text/javascript" src="lib/OpenStreetMap.js"></script> <script src="js/Styles.js"></script> <script src="js/OpenLS_RS.js"></script> <script src="js/OpenLS_LUS.js"></script> <script src="js/OpenLS_DS.js"></script> <script src="js/AAS.js"></script> <script src="js/Search.js"></script> <script src="js/Marker.js"></script> <script src="js/CheckRouteLink.js"></script> <script src="js/WPS_Profile.js"></script> <!-- <script src="lib/Firebug/firebug.js"></script> --><script src="lib/Jquery/jquery-1.2.6.js"></script> <!--<script src="lib/Jquery/interface 1.2/interface.js"></script>--><script src="js/ContextMenu.js"></script> <script src="js/gpx.js"></script> <script type="text/javascript">HTTP_GET_VARS=new Array();
+strGET=document.location.search.substr(1,document.location.search.length);
+if(strGET!=''){
+    gArr=strGET.split('&');
+    for(i=0;i<gArr.length;++i)
+    {
+        v='';vArr=gArr[i].split('=');
+        if(vArr.length>1){v=vArr[1];}
+        HTTP_GET_VARS[unescape(vArr[0])]=unescape(v);
+    }
+}
+function GET(v){
+    if(!HTTP_GET_VARS[v]){return 'undefined';}
+    return HTTP_GET_VARS[v];
+}
+//if possible out global variables into init()
+//map
+var map;
+
+//controls
+var controls;
+var dragControl;
+var selectControl;
+var mouseDefaults;
+var mouseNotOnContext;
+
+//layers
+var vectorLayerRoute;
+var vectorLayerSymbols;
+var vectorLayerAvoid = null;
+var vectorLayerPolygon = null;
+var lyRouteFeatures; //layer with the single points from route (features)
+var lyMarkers;
+
+//features und marker
+var startPoint; 	//Feature
+var endPoint;	    //Feature
+var currentFeature; //Feature
+var startMarker; 	//Marker
+var endMarker; 		//Marker
+
+//arrays
+var viaStorage = [];
+
+//variables
+var countVia=0;
+var status = ''; //possible [startPoint, viaPoint, endPoint][Start, Via, End]
+var viaStore=1;	//id of the active viapoint is stored here
+var seqCount=0;
+var disableClickEvent=false;
+
+//booleans
+var startExists = false;
+var endExists = false;
+var thisViaExists = false;
+var routeready = false;
+
+//Proxy for GetFeature
+OpenLayers.ProxyHost = "../../cgi-bin/proxy.cgi?url=";
+
+//for testing ...
+OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
+
+//*** Init ***
+function init(){
+    //bounds, map & layer WMS
+    var bounds = new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34);
+    map = new OpenLayers.Map('mapFrame',{maxExtent: bounds,
+        numZoomLevels:19,
+        maxResolution: 156543.0339,
+        units: 'm',
+        projection: new OpenLayers.Projection("EPSG:900913"),
+        displayProjection: new OpenLayers.Projection("EPSG:4326"),
+        controls: []});
+
+    var layerMapnik = new OpenLayers.Layer.OSM.Mapnik("OSM Mapnik");
+    var layerTah = new OpenLayers.Layer.OSM.Osmarender("OSM Osmarender");
+    var layerCycle = new OpenLayers.Layer.OSM.CycleMap("OSM CycleMap");
+    //var layerORS = new OpenLayers.Layer.WMS( "ORS WMS TileCache", urlORS, {layers: 'ors-osm', format: 'image/png', transitionEffect: 'resize'});
+    var layerORS = new OpenLayers.Layer.WMS( "ORS WMS TileCache", urlORS, {layers:'osm_auto:all', srs:'EPSG:900913', format:'image/png'});
+    var layerTMC = new OpenLayers.Layer.WMS( "TMC Germany (All)", urlTMC, {layers: layerlistTMC, styles: 'tmcPoint_All', srs: 'EPSG:31467', transparent: true, format: 'image/png', tiled: 'true'});
+    var layerTMC2 = new OpenLayers.Layer.WMS( " > TMC only Jam/Construction", urlTMC, {layers: layerlistTMC, styles: 'tmcPoint_StauBau', srs: 'EPSG:31467', transparent: true, format: 'image/png', tiled: 'true'});
+    var layerTMC3 = new OpenLayers.Layer.WMS( " > TMC only closed Ways", urlTMC, {layers: layerlistTMC, styles: 'tmcPoint_Sperrungen', srs: 'EPSG:31467', transparent: true, format: 'image/png', tiled: 'true'});
+    //layerTMC.visibility=false;
+    layerTMC.visibility=true;
+    layerTMC2.visibility=false;
+    layerTMC3.visibility=false;
+
+    var layerTMC_lines = new OpenLayers.Layer.WMS( "Germany TMC (Streets)", "http://openls.geog.uni-heidelberg.de/geoserver/wms", {'layers':'osm_tmc:lines', srs: 'EPSG:31467', transparent: true, format: 'image/png', tiled: 'true'});
+
+    var hs2 = new OpenLayers.Layer.WMS( "Hillshade", hs_url , hs_options);
+    hs2.setOpacity(0.2);
+    hs2.visibility=false;
+    //hs2.visibility=true;
+
+    //marker-Layers
+    markerPosition = new OpenLayers.Layer.Markers( "Position" );
+    markersPOI = new OpenLayers.Layer.Markers( "POIs" );
+    map.addLayer(markersPOI);
+    map.addLayer(markerPosition);
+
+    //layers for route
+    vectorLayerRoute = new OpenLayers.Layer.Vector("Route",{style: route_style});
+    vectorLayerSymbols = new OpenLayers.Layer.Vector("Symbols");
+    lyRouteFeatures = new OpenLayers.Layer.Vector("Route Point Features");
+    lyMarkers = new OpenLayers.Layer.Markers("Route Points");
+
+
+    //addLayersToMap
+    map.addLayer(vectorLayerRoute);
+    map.addLayer(lyRouteFeatures);
+    map.addLayer(lyMarkers);
+    //map.addLayers([layerMapnik,layerTah,layerCycle,layerORS,layerTMC,hs2]);
+    //map.addLayers([layerMapnik,layerTah,layerCycle,layerORS,hs2]);
+    map.addLayers([layerMapnik,layerTah,layerCycle,layerORS,layerTMC,layerTMC2,layerTMC3,layerTMC_lines,hs2]);
+
+
+    //add map controls ...
+    map.addControl(new OpenLayers.Control.PanZoomBar());
+    map.addControl(new OpenLayers.Control.LayerSwitcher());
+    map.addControl(new OpenLayers.Control.Scale());
+    map.addControl(new OpenLayers.Control.ScaleLine());
+    map.addControl(new OpenLayers.Control.MousePosition());
+    map.addControl(new OpenLayers.Control.MouseDefaults());
+    var permalink = new OpenLayers.Control.Permalink();
+    map.addControl(permalink);
+
+    //Analyse polygons
+    vectorLayerPolygon = new OpenLayers.Layer.Vector( "Accessibility Area", {'style': analysearea_style});
+    map.addLayer(vectorLayerPolygon);
+
+    //controls
+    controls = {
+        Route: new OpenLayers.Control.DrawFeature(vectorLayerRoute,
+                OpenLayers.Handler.Path),
+        Position: new OpenLayers.Control.DrawFeature(vectorLayerSymbols,
+                OpenLayers.Handler.Point)
+    };
+
+    for(var key in controls) {
+        map.addControl(controls[key]);
+    }
+
+
+    //Avoid Areas / polygons
+    vectorLayerAvoid = new OpenLayers.Layer.Vector( "Avoid Areas", {'style': avoidareas_style});
+    map.addLayer(vectorLayerAvoid);
+    var container = document.getElementById("panel");
+    var panelPolygon = new OpenLayers.Control.Panel({'displayClass': 'olControlEditingToolbar', 'div': container});
+    var controlsPolygon = {
+        polygon: new OpenLayers.Control.DrawFeature(vectorLayerAvoid, OpenLayers.Handler.Polygon,
+                {title:"Create an avoid area polygon!", 'displayClass': 'olControlDrawFeaturePolygon'}),
+        modify: new OpenLayers.Control.ModifyFeature(vectorLayerAvoid,
+                {title:"Modify an avoid area polygon!", 'displayClass': 'olControlModifyFeature'}),
+        remove: new OpenLayers.Control.SelectFeature(vectorLayerAvoid, {onSelect: function(feature) {vectorLayerAvoid.removeFeatures([feature]);}, title:"Remove Feature by click", 'displayClass': 'olControlRemoveFeature'})
+    };
+
+    for(var key in controlsPolygon) {
+        panelPolygon.addControls([controlsPolygon[key]]);
+    }
+
+    map.addControl(panelPolygon);
+    //panelPolygon.activateControl(controlsPolygon.nav);
+
+
+    //set center of the map
+    if(!map.getCenter()){
+        //map.setCenter(new OpenLayers.LonLat(789797.47032,6574459.91666), 14);
+        map.setCenter(new OpenLayers.LonLat(967761.98139, 6344704.54162), 14);
+    }
+
+    if(GET("start") != 'undefined' || GET("end") != 'undefined')
+    {
+        var zoomlevel
+        if (GET("zoom") != 'undefined') {zoomlevel=GET("zoom");} else {zoomlevel=14;}
+        if (GET("start") != 'undefined'){
+            var start = GET("start");
+            var startpos = start.split(',');
+            var startlonlat = new OpenLayers.LonLat(startpos[0],startpos[1]).transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+            document.getElementById('tfStartSearch').value = 'Pos@: ' + startpos[0] + ' ' + startpos[1];
+            map.setCenter(startlonlat,zoomlevel);
+        }
+        else{
+            var end = GET("end");
+            var endpos = end.split(',');
+            var endlonlat = new OpenLayers.LonLat(endpos[0],endpos[1]).transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+            document.getElementById('tfEndSearch').value = 'Pos@: ' + endpos[0] + ' ' + endpos[1];
+            map.setCenter(endlonlat, zoomlevel);
+        }
+    }
+    else {
+        if (navigator.geolocation) {
+            /* geolocation is available */
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var lonlat = new OpenLayers.LonLat(position.coords.longitude,position.coords.latitude);
+                lonlat.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+                map.setCenter(lonlat, 14);});
+        }
+    }
+
+    //setLayers-Z-index for Eventhandling
+    var needed_Z_Index = map.getLayerIndex(vectorLayerAvoid)+1;
+    var ind = needed_Z_Index;
+    map.setLayerIndex(vectorLayerRoute, needed_Z_Index);
+    map.setLayerIndex(lyRouteFeatures, needed_Z_Index+1);
+    map.setLayerIndex(lyMarkers, needed_Z_Index+1);
+    map.setLayerIndex(markersPOI, needed_Z_Index+1);
+
+    //add map-click-handler
+    //map.events.register('click', map, handleMapClick);//old getINformation now disabled
+    map.events.register('click', map, function(ev){handleMapEvent(ev);});
+    map.events.register('moveend', map, function(){
+        for(var i = 0; i<lyRouteFeatures.features.length; i++){
+            afterZooming(lyRouteFeatures.features[i],map.getPixelFromLonLat(lyRouteFeatures.features[i].lonlat));
+        }
+    });
+    map.events.register('zoomend', map, function(){
+        for(var i = 0; i<lyRouteFeatures.features.length; i++){
+            afterZooming(lyRouteFeatures.features[i],map.getPixelFromLonLat(lyRouteFeatures.features[i].lonlat));
+        }
+    });
+
+    //T E M P ->ToDo
+    map.setBaseLayer(layerMapnik);
+
+    //Check RouteLink
+    checkRouteLink();
+
+    dragControl =
+            new OpenLayers.Control.DragFeature(lyRouteFeatures, {onDrag: function(feature, pixel){
+                var newLonLat =  map.getLonLatFromPixel(pixel);
+                currentFeature.marker.moveTo(map.getLayerPxFromLonLat(newLonLat));
+                newLonLat = new OpenLayers.LonLat(newLonLat.lon,newLonLat.lat).transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
+                document.getElementById('tf'+currentFeature.name+'Search'+currentFeature.myId).value = 'Pos@: '+newLonLat.lon.toFixed(6)+' '+newLonLat.lat.toFixed(6);
+                /*if (routeready){
+                 determineRouteFast();
+                 }*/
+
+            },
+
+                overFeature: function(feature){
+                    currentFeature = feature;
+                    if(currentFeature.name =='Via'){
+                        saveActivViaId('h'+currentFeature.myId);
+                    }
+                    toggleButtons(currentFeature.name);
+                    if(!this.handlers.drag.dragging) {
+                        this.feature = feature;
+                        this.handlers.drag.activate();
+
+                        this.over = true;
+                        // TBD replace with CSS classes
+                        this.map.div.style.cursor = "move";
+                    } else {
+                        if(this.feature.id == feature.id) {
+                            this.over = true;
+                        } else {
+                            this.over = false;
+                        }
+                    }
+                },
+                outFeature: function(feature){
+                    $(".tfPoints").css('backgroundColor','#FFFFFF');
+                    if(!this.handlers.drag.dragging) {
+                        this.over = false;
+                        this.handlers.drag.deactivate();
+                        // TBD replace with CSS classes
+                        this.map.div.style.cursor = "default";
+                        this.feature = null;
+                    } else {
+                        if(this.feature.id == feature.id) {
+                            this.over = false;
+                        }
+                    }
+                },
+                upFeature: function(pixel) {
+                    afterDragging(this.feature, pixel);
+                    if(!this.over) {
+                        this.handlers.drag.deactivate();
+                        this.feature = null;
+                        this.onComplete;
+                        // TBD replace with CSS classes
+                        this.map.div.style.cursor = "default";
+
+                    }
+                    this.handlers.drag.deactivate();
+                    if((startExists)&&(endExists)){
+                        //determineRouteFast();
+                        determineRoute();
+                    }
+                    $(".tfPoints").css('backgroundColor','#FFFFFF');
+                }
+
+            });
+
+    map.addControl(dragControl);
+    dragControl.activate();
+    map.div.oncontextmenu = function noContextMenu(e) {return false;};
+    $(".olControlPermalink").mouseover(function() {
+        mouseNotOnContext = false;
+        map.div.oncontextmenu = function(e) {return true;};
+    });
+    $(".olControlPermalink").mouseout(function() {
+        mouseNotOnContext = true;
+        map.div.oncontextmenu = function(e) {return false;};
+    });
+    $(".olControlPanZoomBar").mouseover(function() {
+        mouseNotOnContext = false;
+        map.div.oncontextmenu = function(e) {return true;};
+    });
+    $(".olControlPanZoomBar").mouseout(function() {
+        mouseNotOnContext = true;
+        map.div.oncontextmenu = function(e) {return false;};
+    });
+    setStatus('Start');
+    mouseNotOnContext = true;
+}
+//control for start- & endpoint
+function toggleControl(element) {
+    for(key in controls) {
+        var control = controls[key];
+        if(element.value == key && element.checked) {
+            control.activate();
+        } else {
+            control.deactivate();
+        }
+    }
+}
+function replaceAll( str, searchTerm, replaceWith, ignoreCase ){
+    var regex = "/"+searchTerm+"/g";
+    if( ignoreCase ) regex += "i";
+
+    return str.replace( eval(regex), replaceWith );
+}
+//SetHTML for handleMapClick und GetFeatureInfo
+function setHTML(response) {
+    var tables = response.responseText.split('<table class="featureInfo">');
+    var result = '';
+    for (var i = 1; i < tables.length; i++) {
+        result += '<table width=360 class="featureInfo">'+replaceAll(tables[i],"-","-<wbr/>", false);
+    }
+    if(tables.length == 1)
+        result = '<span class="problems">No Result ... please try again!</span>'
+
+    document.getElementById('informations').innerHTML = result;
+}
+function handleMapClick(evt) {
+    if(document.getElementById("rbFeature").checked == true){
+        document.getElementById('informations').innerHTML = '<span class="informations">Search... please wait!</span>';
+        var url =  map.layers[0].getFullRequestString(
+                {
+                    REQUEST: "GetFeatureInfo",
+                    EXCEPTIONS: "application/vnd.ogc.se_xml",
+                    BBOX: map.getExtent().toBBOX(),
+                    X: evt.xy.x,
+                    Y: evt.xy.y,
+                    INFO_FORMAT: 'text/html',
+                    FORMAT: 'png',
+                    QUERY_LAYERS: layerlistGetFeatureInfo,
+                    LAYERS: layerlistGetFeatureInfo,
+                    FEATURE_COUNT: 4,
+                    WIDTH: map.size.w,
+                    HEIGHT: map.size.h,
+                    SRS: 'EPSG:900913'
+                },
+                urlGetFeaturInfo
+        );
+
+        OpenLayers.loadURL(url, '', this, setHTML, setHTML);
+        OpenLayers.Event.stop(evt);
+    }
+}
+function isSetStartEnd(){
+    if(startExists && endExists){
+        document.getElementById("Calculate").disabled=false;
+        document.getElementById("switchStartEnd").disabled=false;
+//				if(!route_calculating){
+//					determineRoute(false);
+//				}
+//				routeready = true;
+    }
+    if(startExists && document.getElementById("Analyse") != null){
+        document.getElementById("Analyse").disabled=false;
+    }
+    if((startExists||(document.getElementById("tfNameSearch").value!=""))){
+        document.getElementById("Display1").disabled=false;
+        document.getElementById("Display2").disabled=false;
+    }
+}
+function checkReturn(textfieldname,e){
+    var evt = e || window.event;
+    if(!evt)
+        return;
+    var key = 0;
+    // für mozilla/ff, wenn keycode==0 muss 'evt.which' abgefragt werden
+    if (evt.keyCode) { key = evt.keyCode; }
+    else if (typeof(evt.which)!= 'undefined') { key = evt.which; }
+
+    // return wurde gedrückt.
+    if( key == 13 && textfieldname=='tfSearch'){
+        setSearch(this);
+    }
+    else if( key == 13 && textfieldname=='tfStartSearch'){
+        setRoutePosition('start');
+    }
+    else if( key == 13 && textfieldname=='tfEndSearch'){
+        setRoutePosition('end');
+    }
+    else if( key == 13 && contains(textfieldname,'tfViaSearch')){
+        setRoutePosition(textfieldname);
+    }
+}
+function contains(string, substring){
+    if (string.match(/substring.+/)!= -1){
+        return true;
+    }else{
+        return false;
+    }
+}
+function closeopenTab(name){
+    if(document.getElementById(name).style.display == 'none')
+        document.getElementById(name).style.display = ''
+    else
+        document.getElementById(name).style.display = 'none'
+}
+
+function closeTab(name){
+    if(document.getElementById(name).style.display == '')
+        document.getElementById(name).style.display = 'none'
+}
+
+function openTab(name){
+    if(document.getElementById(name).style.display == 'none')
+        document.getElementById(name).style.display = ''
+}
+
+function closeBanner(){
+    closeopenTab('topbanner');
+    document.getElementById('main_table').style.height='97%';
+    //return false;
+}
+
+// GPX
+function gpx_upload() {
+
+    var pfad  = document.gpxfile.gpx_content.value;
+    var gpx_name = document.gpxfile.name_it.value;
+
+
+    var lgpx = new OpenLayers.Layer.GPX(gpx_name, pfad, "#000000");
+    lgpx.requestSuccess(pfad);
+
+    map.addLayer(lgpx);
+
+
+    var featureBounds = lgpx.features[0].geometry.getBounds();
+
+    map.zoomToExtent(featureBounds, true);
+}
+
+function addViaCode(){
+    countVia = countVia + 1;
+
+    if (countVia <= 1){
+        closeopenTab('switchStartEnd');
+    }
+    $('#EndPoint').before('<tr id="viaTr'+ countVia +'"><td nowrap><div class="textLabel"><img src="img/arrow-orange.png" class="radioIcons" width="12" height="16" alt="arrow-orange.png"><span class="text"> Via'+countVia+':</span></div></td><td nowrap colspan="2"><input name="tfViaSearch'+ countVia +'" type="text" id="tfViaSearch'+ countVia +'" class="tfPoints" value="" size="27" onclick="saveActivViaId(this.id);setStatus(\'Via\');" onKeyPress="checkReturn(\'tfViaSearch'+ countVia +'\',event);"> <button name="enterVia" onclick="setStatus(\'Via\');setRoutePosition(\'tfViaSearch'+ countVia+'\');"> Set</button></td></tr>');
+    if (countVia >= 1){
+        document.getElementById('rmVia').style.display='';
+    }
+    saveActivViaId('h'+countVia);
+    setStatus('Via');
+}
+function removePoint(featureName){ //only for Start/End
+
+    for(var i = 0; i<lyRouteFeatures.features.length; i++){
+        if (lyRouteFeatures.features[i].name == featureName){
+            lyMarkers.removeMarker(lyRouteFeatures.features[i].marker);
+            lyRouteFeatures.removeFeatures(lyRouteFeatures.features[i]);
+            document.getElementById('tf'+featureName+'Search').value = 'Set '+ featureName + ' on map!';
+        }
+    }
+}
+function removeViaCode(){
+    if(viaStorage.length != 0){
+        for (var i = 0; i<viaStorage.length; i++){
+            if((viaStorage[i].myId == countVia)&&(viaStorage.length > 1)){
+                viaStorage.splice(i, 1);
+                break;
+            }else if((viaStorage[i].myId == countVia)&&(viaStorage.length == 1)){
+                viaStorage = [];
+                break;
+            }
+        }
+        for (var i = 0; i<lyRouteFeatures.features.length; i++){
+            if(lyRouteFeatures.features[i].myId == countVia){
+                lyMarkers.removeMarker(lyRouteFeatures.features[i].marker);
+                lyRouteFeatures.removeFeatures(lyRouteFeatures.features[i]);
+            }
+        }
+    }
+
+    $('#viaTr'+ (countVia)).remove();
+    countVia--;
+    if (countVia>0){
+        saveActivViaId('h'+countVia);
+        setStatus('Via');
+    }
+    if (countVia == 0){
+        closeopenTab('switchStartEnd');
+        document.getElementById('rmVia').style.display='none';
+        setStatus('Start');
+    }
+}
+function getStartOrEndFeature(name){
+    var retFeature;
+    var checkPhrase;
+    for (var i=0; i < lyRouteFeatures.features.length; i++){
+        checkPhrase = lyRouteFeatures.features[i].name + lyRouteFeatures.features[i].myId;
+        if (checkPhrase == name){
+            retFeature = lyRouteFeatures.features[i];
+            return retFeature;
+        }
+    }
+}
+function sortRule(a, b){
+    return a.myId - b.myId;
+}
+function sortVias(viaArray){
+    viaArray = viaArray.sort(sortRule);
+    return viaArray;
+}
+function getEdgeLonLat(lonlat){
+    var edgePx = map.getViewPortPxFromLonLat(lonlat);
+    edgePx.x = edgePx.x - 25;
+    edgePx.y = edgePx.y - 35;
+    var edgeLonLat = map.getLonLatFromViewPortPx(edgePx);
+    return edgeLonLat;
+}
+function handleMapEvent(event){
+    if (!($.browser.mozilla && jQuery.browser.version.substr(0,3)=="1.9")){
+        disableClickEvent = false;
+    }
+    if($.browser.msie){
+        disableClickEvent = false;
+    }
+    if(disableClickEvent == false){
+        var lonlat = map.getLonLatFromViewPortPx(event.xy);
+        var edgePx = map.getViewPortPxFromLonLat(lonlat);
+        edgePx.x = edgePx.x - 25;
+        edgePx.y = edgePx.y - 35;
+        var edgeLonLat = map.getLonLatFromViewPortPx(edgePx);
+        var bounds;
+        if(getStatus()=='Start'){
+            if(!(startExists)){
+                if ((lyRouteFeatures.features.length === 0)||!(startExists)){
+                    map.getLonLatFromPixel(new OpenLayers.Pixel(25,35))
+                    bounds = new OpenLayers.Bounds(lonlat.lon,lonlat.lat,edgeLonLat.lon,edgeLonLat.lat);
+                    startPoint = new OpenLayers.Feature.Vector(bounds.toGeometry(),{icon:markerIconStart});
+                    startPoint.bounds = bounds;
+                    startPoint.lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat);
+                    startPoint.marker = new OpenLayers.Marker(lonlat, startPoint.data.icon.clone());
+                    lyMarkers.addMarker(startPoint.marker);
+                    startPoint.style = startPointStyle;
+                    startPoint.name = 'Start';
+                    startPoint.myId ='';
+                    lyRouteFeatures.addFeatures([startPoint]);
+                    startExists = true;
+                }
+                isSetStartEnd();
+                lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
+                document.getElementById('tfStartSearch').value = 'Pos@: '+lonlat.lon.toFixed(6)+' '+lonlat.lat.toFixed(6);
+            }else{//Move Point on Contextmenu Part
+                removePoint('Start');
+                startExists=false;
+                handleMapEvent(event);
+            }
+        }else if(getStatus()=='End'){
+            if(!(endExists)){
+                if ((lyRouteFeatures.features.length === 0)||!(endExists)){
+                    bounds = new OpenLayers.Bounds(lonlat.lon,lonlat.lat,edgeLonLat.lon,edgeLonLat.lat);
+                    endPoint = new OpenLayers.Feature.Vector(bounds.toGeometry(),{icon:markerIconEnd});
+                    endPoint.bounds = bounds;
+                    endPoint.lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat);
+                    endPoint.marker = new OpenLayers.Marker(lonlat, endPoint.data.icon.clone());
+                    lyMarkers.addMarker(endPoint.marker);
+                    endPoint.style = endPointStyle;
+                    endPoint.name = 'End';
+                    endPoint.myId ='';
+                    lyRouteFeatures.addFeatures([endPoint]);
+                    endExists = true;
+                }
+                isSetStartEnd();
+                lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
+                document.getElementById('tfEndSearch').value = 'Pos@: '+lonlat.lon.toFixed(6)+' '+lonlat.lat.toFixed(6);
+            }else{
+                //Move Point on Contextmenu Part
+                removePoint('End');
+                endExists = false;
+                handleMapEvent(event);
+            }
+        }else if(getStatus()=='Via'){
+            var id = 0;
+            var actId = getActivViaId();
+            var thisViaExists=false ;
+            aloop: for(var i=1 ; i<=countVia ; i++){
+                if (i==actId){
+                    id  = i;
+                    break aloop;
+                }
+            }
+            bloop: for (var i = 0; i<viaStorage.length; i++){
+                if (viaStorage[i].myId==id){
+                    thisViaExists = true;
+                    break bloop;
+                }
+            }
+
+            if (viaStorage.length === 0){
+                bounds = new OpenLayers.Bounds(lonlat.lon,lonlat.lat,edgeLonLat.lon,edgeLonLat.lat);
+                var viaPoint = new OpenLayers.Feature.Vector(bounds.toGeometry(),{icon:markerIconVia});
+                viaPoint.bounds = bounds;
+                viaPoint.style = viaPointStyle;
+                viaPoint.name = 'Via';
+                viaPoint.myId = id;
+                viaPoint.lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat);
+                viaPoint.marker = new OpenLayers.Marker(lonlat, viaPoint.data.icon.clone(), id, id);
+                lyRouteFeatures.addFeatures([viaPoint]);
+                lyMarkers.addMarker(viaPoint.marker);
+                viaStorage.push(viaPoint);
+                isSetStartEnd();
+                var lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
+                document.getElementById('tfViaSearch'+id).value = 'Pos@: '+lonlat.lon.toFixed(6)+' '+lonlat.lat.toFixed(6);
+            }else{
+                if(!(thisViaExists)){
+                    bounds = new OpenLayers.Bounds(lonlat.lon,lonlat.lat,edgeLonLat.lon,edgeLonLat.lat);
+                    var newViaPoint = new OpenLayers.Feature.Vector(bounds.toGeometry(),{icon:markerIconVia});
+                    newViaPoint.bounds = bounds;
+                    newViaPoint.style = viaPointStyle;
+                    newViaPoint.name = 'Via';
+                    newViaPoint.myId = id;
+                    newViaPoint.lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat);
+                    newViaPoint.marker = new OpenLayers.Marker(lonlat, newViaPoint.data.icon.clone(), id, id);
+                    lyMarkers.addMarker(newViaPoint.marker);
+                    lyRouteFeatures.addFeatures([newViaPoint]);
+                    viaStorage.push(newViaPoint);
+                    isSetStartEnd();
+                    var lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
+                    document.getElementById('tfViaSearch'+id).value = 'Pos@: '+lonlat.lon.toFixed(6)+' '+lonlat.lat.toFixed(6);
+                }
+            }
+        }
+    }
+    disableClickEvent = false;
+}
+function saveActivViaId(activeViaDivId){
+    var activeVia = activeViaDivId.split('h');
+    viaStore = activeVia[1];
+}
+function getActivViaId(){
+    return viaStore;
+}
+function getStatus(){
+    return status;
+}
+function setStatus(stat){
+    status = stat;
+    toggleButtons(stat);
+}
+function toggleButtons(status){
+    if((status == 'Via')&&(countVia>=1)){
+        $(".tfPoints").css('backgroundColor','#FFFFFF');
+        document.getElementById('tfViaSearch'+getActivViaId()).style.backgroundColor = '#FEE8C8';
+    }else if(status == 'Via'){
+        $(".tfPoints").css('backgroundColor','#FFFFFF');
+    }else{
+        $(".tfPoints").css('backgroundColor','#FFFFFF');
+        document.getElementById('tf' + status + 'Search').style.backgroundColor = '#FEE8C8';
+    }
+}
+function afterDragging(feature, pixel){
+    var newLonLat = map.getLonLatFromPixel(pixel);
+    var x = pixel.x;
+    var y = pixel.y;
+    x = x -25;
+    y = y -35;
+    var edgeLonLat = map.getLonLatFromViewPortPx(new OpenLayers.Pixel(x,y));
+    var bounds = new OpenLayers.Bounds(newLonLat.lon,newLonLat.lat,edgeLonLat.lon,edgeLonLat.lat);
+    var newFeature, newIcon;
+    newIcon = feature.data.icon.clone();
+    newFeature = new OpenLayers.Feature.Vector(bounds.toGeometry(),{icon: newIcon});
+    newFeature.bounds = bounds;
+    newFeature.lonlat = newLonLat;
+    newFeature.style = feature.style;
+    newFeature.name = feature.name
+    newFeature.myId =feature.myId;
+    newFeature.marker = new OpenLayers.Marker(newLonLat, newIcon, newFeature.myId,newFeature.myId);
+    if(feature.name == 'Via'){
+        for (var i = 0; i<viaStorage.length; i++){
+            if (viaStorage[i].myId==feature.myId){
+                viaStorage.splice(i,1);
+            }
+        }
+        viaStorage.push(newFeature);
+    }
+    lyMarkers.removeMarker(feature.marker);
+    lyRouteFeatures.removeFeatures([feature]);
+    lyRouteFeatures.addFeatures([newFeature]);
+    lyMarkers.addMarker(newFeature.marker);
+    lyRouteFeatures.redraw();
+}
+function afterZooming(feature, pixel){
+    var newLonLat =  feature.lonlat; //map.getLonLatFromPixel(pixel);
+    pixel = map.getPixelFromLonLat(feature.lonlat);
+    var x = pixel.x;
+    var y = pixel.y;
+    x = x -25;
+    y = y -35;
+    var edgeLonLat = map.getLonLatFromViewPortPx(new OpenLayers.Pixel(x,y));
+    var bounds = new OpenLayers.Bounds(newLonLat.lon,newLonLat.lat,edgeLonLat.lon,edgeLonLat.lat);
+    var newFeature, newIcon;
+    newIcon = feature.data.icon.clone();
+    newFeature = new OpenLayers.Feature.Vector(bounds.toGeometry(),{icon: newIcon});
+    newFeature.bounds = bounds;
+    newFeature.lonlat = newLonLat;
+    newFeature.style = feature.style;
+    newFeature.name = feature.name
+    newFeature.myId =feature.myId;
+    newFeature.marker = new OpenLayers.Marker(newLonLat, newIcon, newFeature.myId,newFeature.myId);
+    if(feature.name == 'Via'){
+        for (var i = 0; i<viaStorage.length; i++){
+            if (viaStorage[i].myId==feature.myId){
+                viaStorage.splice(i,1);
+            }
+        }
+        viaStorage.push(newFeature);
+    }
+    lyMarkers.removeMarker(feature.marker);
+    lyRouteFeatures.removeFeatures([feature]);
+    lyRouteFeatures.addFeatures([newFeature]);
+    lyMarkers.addMarker(newFeature.marker);
+    lyRouteFeatures.redraw();
+}
+
+
+function changePOISearchForm(dropDown){
+    var index = dropDown.selectedIndex;
+
+    if(index==0){
+        openTab('dirnearest');openTab('directory2');closeTab('dirwithin');closeTab('dirname');closeTab('dirroute');
+    }
+    else if(index==1){
+        openTab('dirwithin');openTab('directory2');closeTab('dirnearest');closeTab('dirname');closeTab('dirroute');
+    }
+    else if(index==2){
+        openTab('dirname');closeTab('dirwithin');closeTab('dirnearest');closeTab('directory2');closeTab('dirroute');
+    }
+    else if(index==3){
+        openTab('dirroute');closeTab('dirwithin');closeTab('dirnearest');openTab('directory2');closeTab('dirname');
+    }
+    else{
+        closeTab('dirname');closeTab('dirwithin');closeTab('dirnearest');closeTab('directory2');closeTab('dirroute');
+    }
+}
+
+function RadioButton(feld,index,maxindex)
+{
+    document.getElementsByName("r1")[0].value = index;
+    switch (index) {
+//		 case 0: document.images["r10"].src = 'img/car_fast_green.png';
+// 			       	 document.images["r11"].src = 'img/car_grey.png';
+//				     document.images["r12"].src = 'img/pedestrian_grey.png';
+//				     document.images["r13"].src = 'img/bike_grey.png';
+// 					 break;
+        case 0: document.images["r11"].src = 'img/car_green.png';
+            // document.images["r10"].src = 'img/car_fast_grey.png';
+            document.images["r12"].src = 'img/pedestrian_grey.png';
+            document.images["r13"].src = 'img/bike_grey.png';
+            document.Testform.selectRoutePref.disabled = false;
+            document.Testform.selectRoutePref.options[0] = null;
+            document.Testform.selectRoutePref.options[1] = null;
+            document.Testform.selectRoutePref.options[2] = null;
+            document.Testform.selectRoutePref.options[3] = null;
+            document.Testform.selectRoutePref.options[0] = new Option("Car (fastest way)", "Fastest", true, true);
+            document.Testform.selectRoutePref.options[1] = new Option("Car (shortest way)", "Shortest");
+//				 		 document.Testform.selectRoutePref.options[0].value = "Fastest";
+//				 		 document.Testform.selectRoutePref.options[1].value = "Shortest";
+            break;
+        case 1: document.images["r12"].src = 'img/pedestrian_green.png';
+            // document.images["r10"].src = 'img/car_fast_grey.png';
+            document.images["r11"].src = 'img/car_grey.png';
+            document.images["r13"].src = 'img/bike_grey.png';
+            document.Testform.selectRoutePref.options[0] = new Option("Pedestrian (shortest way)", "Pedestrian", true, true);
+//						 document.Testform.selectRoutePref.options[0].value = "Pedestrian";
+            document.Testform.selectRoutePref.disabled = true;
+            break;
+        case 2: document.images["r13"].src = 'img/bike_green.png';
+            // document.images["r10"].src = 'img/car_fast_grey.png';
+            document.images["r11"].src = 'img/car_grey.png';
+            document.images["r12"].src = 'img/pedestrian_grey.png';
+            document.Testform.selectRoutePref.disabled = false;
+            document.Testform.selectRoutePref.options[0] = new Option("shortest track", "Bicycle", true, true);
+            document.Testform.selectRoutePref.options[1] = null;
+            document.Testform.selectRoutePref.options[1] = new Option("Mountainbike", "BicycleMTB");
+            document.Testform.selectRoutePref.options[2] = new Option("Racer", "BicycleRacer");
+            document.Testform.selectRoutePref.options[3] = new Option("safest track", "BicycleSafety");
+            document.Testform.selectRoutePref.options[4] = new Option("preferred Cycleway/-route (*Beta*)", "BicycleRoute");
+//				 		 document.Testform.selectRoutePref.options[0].value = "Bicycle";
+//				 		 document.Testform.selectRoutePref.options[1].value = "BicycleMTB";
+//				 		 document.Testform.selectRoutePref.options[2].value = "BicycleRacer";
+//				 		 document.Testform.selectRoutePref.options[3].value = "BicycleSafety";
+            break;
+    }
+}
+
+
+
+function SelectAll(id){
+    document.getElementById(id).focus(); document.getElementById(id).select();
+}
+
+</script> <link href="css/style.css" rel="stylesheet" type="text/css" media="screen"><link href="css/printstyle.css" rel="stylesheet" type="text/css" media="print"><link rel="shortcut icon" href="favicon.ico" type="image/x-icon"><title id="title">OpenRouteService.org:Home</title> </head><body onload="init()"><!--//--><table width="100%" border="0" bordercolor="#2933A4" bgcolor="#2933A4" id="topbanner"><tr bordercolor="#0099FF" bgcolor="#0099FF"><td rowspan="2" nowrap bgcolor="#2933A4"><img src="logos/logo.png" width="80" height="70" id="logo"></td><td width="440" nowrap bordercolor="#2933A4" bgcolor="#2933A4"><span class="site_headline">OpenRouteService.org</span><br><!--<span class="site_headline2"> </span>--></td><td rowspan="2" align="left" bordercolor="#2933A4" bgcolor="#2933A4" class="noPrint"><span class="site_headline2"><span class="infotext_header">Routing with user-generated, collaboratively collected free geodata. This service is based on open standards by the Open Geospatial Consortium (OGC). Thanks to <a href="http://www.openstreetmap.org" target="_blank"><font color="#FFFFFF">OpenStreetMap.org</font></a> - please donate your geographic data to openstreetmap.org!</span></td><span class="noPrint"><td align="right" nowrap bordercolor="#2933A4" bgcolor="#2933A4" class="date">OSM-Data for Routing: 11.03.12<br>OSM-Data for Geocoding: 14.08.11<br>OSM-Data for POI-Search: every sunday</td></span></tr><tr><td colspan="1" align="left" valign="bottom" class="noPrint"><table border="0" align="left" cellspacing="5"><tr><td nowrap class="site_menu"><a href="index.php" title="Map&Routing on OpenStreetMap.org" class="link_menu">MAP&ROUTING</a></td><td class="site_menu"><a href="http://wiki.openstreetmap.org/index.php/ORS_Help" title="Help for use Map & Routing on OpenStreetMap.org" target="_blank" class="link_menu">HELP</a></td><td class="site_menu"><a href="http://wiki.openstreetmap.org/index.php/OpenRouteService" target="_blank" class="link_menu">WIKI</a></td><!--				<td class="site_menu"><a href="news.php" title="News on OpenRouteService.org" class="link_menu">NEWS</a></td> --><td class="site_menu"><a href="contact.php" title="Informations and Contact OpenRouteService.org" class="link_menu">INFO&CONTACT</a></td><td nowrap class="site_menu"><a href="http://koenigstuhl.geog.uni-heidelberg.de/accessible_routing/?lang=en" target="_blank" title="Accessible Routing" class="link_menu">Accessible Routing</a></td><td nowrap><span class="copyright"><a href="" onClick="closeBanner(); return false;" class="copyright" title="close banner">close banner</a></span><td></tr></table></td><td style="width:100" align="right" valign="bottom" class="noPrint"><a href="?lang=de"><img width="20" height="10" border="0" title="German" src="img/german.png"/></a> <a href="?lang=en"><img width="20" height="10" border="0" title="English" src="img/english.png"/></a> <a href="?lang=es"><img width="20" height="10" border="0" title="Spanish" src="img/spanish.png"/></a> <a href="?lang=fr"><img width="20" height="10" border="0" title="French" src="img/french.png"/></a></td></tr></table><table width="100%" height="88%" border="0" id="main_table"><tr><td height="10" colspan="4" nowrap class="table_up"><img src="img/blank.gif" width="1" height="1"></td><td width="100%" height="100%" rowspan="23" align="left" valign="top" class="noPrint"><div id="mapBorder"><div id="mapFrame"></div></div></td></tr><tr><td width="30" height="20" align="left" valign="top" nowrap class="menu" colspan="4">Search</td></tr><tr><td><img src="img/blank.gif" width="10" height="1" class="noPrint"></td><td colspan="3" nowrap class="text"><input name="tfSearch" type="text" id="tfSearch" value="Heidelberg Berliner Straße 48" size="36" onKeyPress="checkReturn('tfSearch',event);" onclick="SelectAll('tfSearch');" class="noPrint"> <input type="button" name="Submit2" id="Search" value="Search" onClick="setSearch(this);" class="noPrint"></td></tr><tr><td height="10" colspan="4" nowrap class="table_up"><img src="img/blank.gif" width="1" height="1"></td></tr><!-- <tr> --><!-- <td height="20" align="left" valign="top" nowrap><strong class="menu">Map</strong></td> --><!--<td width="140" nowrap><input type="radio" name="controls" value="Map" id="rbMap" checked="checked" title="Map Interaction" onClick="toggleControl(this);">
+              <label for="rbMap" class="text" title="Map interaction with Pan & Zoom">Map Interaction <a href="" onClick="closeopenTab('getinformationen'); closeopenTab('whereIam'); return false;" class="link_text_small" title="More Options ...">more</a></label></td>--><!-- <td nowrap id="getinformationen"><input type="radio" name="controls" value="FeatureInfo" id="rbFeature" title="Get object information by click on map objects" onClick="toggleControl(this);"><!--style="display : none"--><!--     <label for="Feature" class="text" title="Get object information by click on map objects">Get Information</label></td>
+          <td nowrap class="link_text_middle" id="whereIam" ><div align="center"><a href="#" title="Where am I?" class="link_text_middle" onClick="javascript:reversegeocode(this);">Where am I?</a></div></td><!--style="display : none"--><!-- </tr> --><!-- <tr>
+          <td height="10" colspan="4" nowrap class="table_up"><img src="img/blank.gif" width="1" height="1"></td>
+        </tr> --><tr><td align="left" valign="top" nowrap colspan="4"><strong class="menu">Routing</strong></td></tr><tr><td><img src="img/blank.gif" width="10" height="1" class="noPrint"></td><td colspan="3" nowrap><table class="noPrint"><tr><!--td nowrap class="text_table_middle">Pick</td--><!--td class="dump" nowrap><td--><td nowrap class="text_table_middle" colspan="3">Address-Search</a></td><td nowrap><a href="#" title="Where am I?" class="link_text_small" onClick="javascript:reversegeocode(this);">Where am I?</a></td><!-- <td valign="middle"></td> --></tr><tr id="StartPoint"><td nowrap><div class="textLabel"><img src="img/arrow-green.png" class="radioIcons" width="12" height="16" alt="arrow-green.png"><span class="text"> Start:</span></div></td><td nowrap colspan="2"><input name="tfStartSearch" type="text" id="tfStartSearch" class="tfPoints" value="Heidelberg Berliner Straße 48" size="27" onKeyPress="checkReturn('tfStartSearch',event);" onclick="setStatus('Start');SelectAll('tfStartSearch');" title="Mark here and click map or use'Rightclick' on map"> <button name="enterStart" onclick="setStatus('Start');setRoutePosition('start');"> Set</button></td><td rowspan="2" valign="middle"><button name="switchStartEnd" disabled="true" id="switchStartEnd" type="button" value="Surprise"onClick="changeStartEnd();"><img src="img/changePos.gif" width="13" height="22" alt="change Positions!"><br>
+</button></td></tr><tr id="EndPoint"><td nowrap><div class="textLabel"><img src="img/arrow-finish.png" class="radioIcons" width="12" height="16" alt="arrow-finish.png"><span class="text"> End:</span></div></td><td nowrap colspan="2"><input name="tfEndSearch" type="text" id="tfEndSearch" class="tfPoints" value="Heidelberg Humboldtstraße" size="27" onKeyPress="checkReturn('tfEndSearch',event);" onclick="setStatus('End');SelectAll('tfEndSearch');" title="Mark here and click map or use'Rightclick' on map"> <button name="enterEnd" onclick="setStatus('End');setRoutePosition('end');"> Set</button></td><!--td nowrap><td--></tr><tr><td colspan="4" nowrap><table><tr><td nowrap><span class="small"><a href="" onClick="addViaCode();return false;" class="link_text_small" title="add one or more Viapoints ...">add Viapoint</a> </span></td><td nowrap><span class="small"><a href="" onClick="removeViaCode();return false;" id="rmVia" style="display:none" class="link_text_small" title="remove one or more Viapoints ...">remove Viapoint</a> </span></td></tr></table></td></tr><tr><td colspan="4" nowrap><table width="100%"><td><input type="hidden" value="0" name="r1"> <!--		<a href="#" onclick="RadioButton('r1',0,4); return false;" class="icons"><img src="img/car_fast_grey.png" title="Car (Fastest)" border="0" name="r10" width="40" height="25"></a><br>
+									</td> --><td><a href="#" onclick="RadioButton('r1',0,3); return false;" class="icons"><img src="img/car_grey.png" title="Car" border="0" name="r11" width="40" height="25"></a><br></td><td><a href="#" onclick="RadioButton('r1',1,3); return false;" class="icons"><img src="img/pedestrian_grey.png" title="Pedestrian" border="0" name="r12" width="24" height="25"></a><br></td><td><a href="#" onclick="RadioButton('r1',2,3); return false;" class="icons"><img src="img/bike_grey.png" title="Bicycle" border="0" name="r13" width="35" height="25"></a><br></td><td align="left"><span class="infotext"><input name="Submit5" type="submit" class="calculate_button" id="Calculate" title="Calculate the route!" onClick="determineRoute(true);" value="Calculate"> </span></td><td align="right"><span class="small"><a href="" onClick="closeopenTab('routing_options'); return false;" class="link_text_small" title="More Routing-Options ...">more options</a> </span></td></tr><!--<tr>     
+										 <td colspan="2" nowrap> 	
+										   <span class="small">
+									       <a href="" onClick="closeopenTab('routing_options'); return false;" class="link_text_small" title="More Routing-Options ...">more options</a>
+								       </span>
+			               </td>
+								</tr>--></table><table><!-- <td class="dump" nowrap></td>
+			               					<td colspan="2" align="right" nowrap><span class="infotext">--><form name="Testform"><select name="selectRoutePref" id="selectRoutePref" class="selectRoutePref" title="Select the route preference: Fastest/Shortest with car, Pedestrain or Bicycle?!"> </select></form><script>
+    if((GET("pref")) == 'undefined'){
+        RadioButton("r1",0,3);}
+    else{
+        switch ((GET("pref"))) {
+            case "Fastest": RadioButton("r1",0,3);
+                document.Testform.selectRoutePref.selectedIndex = 0;
+                break;
+            case "Shortest": RadioButton("r1",0,3);
+                document.Testform.selectRoutePref.selectedIndex = 1;
+                break;
+            case "Pedestrian": RadioButton("r1",1,3);
+                break;
+            case "Bicycle": RadioButton("r1",2,3);
+                document.Testform.selectRoutePref.selectedIndex = 0;
+                break;
+            case "BicycleMTB": RadioButton("r1",2,3);
+                document.Testform.selectRoutePref.selectedIndex = 1;
+                break;
+            case "BicycleRacer": RadioButton("r1",2,3);
+                document.Testform.selectRoutePref.selectedIndex = 2;
+                break;
+            case "BicycleSafety": RadioButton("r1",2,3);
+                document.Testform.selectRoutePref.selectedIndex = 3;
+                break;
+            case "BicycleRoute": RadioButton("r1",2,3);
+                document.Testform.selectRoutePref.selectedIndex = 4;
+                break;
+        };
+    }
+</script></table></tr></table><!--//--><table style="display:none" id="routing_options" class="noPrint" border="0"><tr><td colspan="3" nowrap><span style"white-space:nowrap" class="infotext">Language:<form name="langform"><select name="selectLanguage" id="selectLanguage" title="Select the language for the route instructions!"><option value="de" selected>german</option><option value="en">english</option><option value="bg">bulgarian</option><option value="cz">czech</option><option value="nl">dutch</option><option value="hr">croatian</option><option value="hu">hungarian</option><option value="nl_BE">dutch (belgium)</option><option value="es">spanish</option><option value="eo">esperanto</option><option value="fi">finnish</option><option value="fr">french</option><option value="it">italian</option><option value="pt_BR">portuguese (brazil)</option><option value="ro">romanian</option><option value="ru">russian</option><option value="se">svenska</option><option value="dk">Dansk</option><option value="tr">turkish</option><option value="ca">catalan</option><option value="ja">japanese</option><option value="no">norwegian</option><option value="vi">vietnamese</option><option value="nb">norwegian-bokmal</option><option value="de-rheinl">de - rhenish</option><option value="de-opplat">de - Op Platt</option><option value="de-berlin">de - berlin dialect</option><option value="de-swabia">de - swabian</option><option value="de-ruhrpo">de - Ruhrpott</option><option value="de-at-ooe">de - great austrian dialect</option><option value="de-bay">de-bavarian</option>// Not Used <!-- <option value="de*">german*</option> --><!-- <option value="en*">english*</option> --></select></form><script>
+    var sitelang = "1";
+    document.langform.selectLanguage.selectedIndex = sitelang;
+</script> </span><span style"white-space:nowrap" class="infotext">Dist.: <select name="selectDistanceUnit" id="selectDistanceUnit" title="Select the distance unit for the route instructions!"><option value="KM" selected>km</option><option value="M">m</option><option value="MI">mi</option><option value="YD">yd</option></select> - Color of the Route: <input name="Submit6" type="submit" class="changecolor_button" id="changecolor" title="Change" onClick="changeColorRoute();" value="Change"><br><!--//--><span style="display : none"><input type="checkbox" name="cbTMC" id="cbTMC" value="checkbox">Use Real Time Traffic*</span> <input type="checkbox" name="cbMotorway" id="cbMotorway" value="checkbox">No Motorways <input type="checkbox" name="cbTollway" id="cbTollway" value="checkbox">No Tollways</span></td></tr><tr><td width="77" nowrap class="infotext">Avoid Areas:</td><td width="250" height="30" colspan="2" class="menu"><div id="panel" class="olControlEditingToolbar"></div></td></tr><!-- <tr>
+              	<td colspan="3" class="infotext">* Traffic Message Channel Data only for NRW/Bavaria!</td>
+              </tr> --></table></td></tr><tr><td height="10" colspan="4" nowrap class="table_up"><img src="img/blank.gif" width="1" height="1"></td></tr><tr><td colspan="4" class="noPrint"><span class="infotext"><strong class="menu">POI</strong> Search for Points of Interest</span> <select name="selectSearchType" onchange="changePOISearchForm(this);" class="select_box" id="selectSearchType" title="Select search type"><option value="nearest" title="Nearest POI">Nearest POI</option><option value="dwithin" title="Directory Service - POI within distance">POI within a distance</option><option value="name" title="Directory Service - POI by name">POI by name</option><option value="rbuffer" title="Buffer Distance">POI near route</option><option selected value="none" title="- please choose -">- please choose -</option></td></tr><!--        <td nowrap colspan="2">
+                	<input name="tfStartSearch" type="text" id="tfStartSearch" class="tfPoints" value="Bonn Meckenheimer Allee" size="27" onKeyPress="checkReturn('tfStartSearch',event);" onclick="setStatus('Start');" title="Mark here and click map or use'Rightclick' on map">
+                	<button name="enterStart" onclick="setStatus('Start');setRoutePosition('start');"> Set</button>
+                </td>--><tr style="display : none" id="dirroute"><td height="20" colspan="4" nowrap><span class="menu">1. </span><span class="text">Buffer Distance</span> <input name="tfBufDistance" title="Buffer Distance" type="text" class="text_textfiled" id="tfBufDistance" value="100" size="2"><span class="text">m</span></td><!-- <label for="rbPosition" class="menu" title="Set position on map!">1.</label>
+		    		    
+		    <input type="text" name="tfPOISearch" value="" id="tfPOISearch" class="tfPoints" size="27" onKeyPress="checkReturn('tfPOISearch',event);" onclick="setStatus('POI')" title="Set position on map!">
+		    <button name="enterPOIpos" onclick="setStatus('POI');setRoutePosition('POI');"> Set</button>
+		    
+		   <label for="rbPosition" class="text" title="Set position on map!"> Pick Position</label>
+		    </td>--></tr><tr style="display : none" id="dirnearest"><td height="20" colspan="4" nowrap><label for="rbPosition" class="menu" title="Set position on map!">1.</label> <input type="radio" name="controls" value="Startpoint" id="rbStartpoint" title="Set position on map!" onClick="toggleControl(this);"> <label for="rbPosition" class="text" title="Set position on map!">Pick Position</label></td><!-- <label for="rbPosition" class="menu" title="Set position on map!">1.</label>
+		    		    
+		    <input type="text" name="tfPOISearch" value="" id="tfPOISearch" class="tfPoints" size="27" onKeyPress="checkReturn('tfPOISearch',event);" onclick="setStatus('POI')" title="Set position on map!">
+		    <button name="enterPOIpos" onclick="setStatus('POI');setRoutePosition('POI');"> Set</button>
+		    
+		   <label for="rbPosition" class="text" title="Set position on map!"> Pick Position</label>
+		    </td>--></tr><tr style="display : none" id="dirname"><td height="20" colspan="4" nowrap class="menu"><label for="tfNameSearch" class="text" title="Search for ...">1. Search for</label> <input name="tfSearch" type="text" id="tfNameSearch" value="Name" size="16"> <label for="Display1" class="text" title="Press Button "Display"">| 2. Press</label> <input name="Submit3" type="submit" class="display_button" id="Display1" onClick="doDSRequest(this);" value="Display"> <input type="submit" name="Submit4" id="Clear1" value="Clear" disabled="false" onClick="clearMarkers('POIs');"></tr><tr style="display : none" id="dirwithin"><td height="20" colspan="4" nowrap><label for="rbPosition" class="menu" title="Set position on map!">1.</label> <input type="radio" name="controls" value="Startpoint" id="rbStartpoint" title="Set position on map!" onClick="toggleControl(this);"> <label for="rbPosition" class="text" title="Set position on map!">Pick Position, </label> <span class="text">Min-/Max-Distance</span> <input name="tfMinDistance" title="Minimum distance" type="text" class="text_textfiled" id="tfMinDistance" value="0" size="2"><span class="text">m</span> <input name="tfMaxDistance" title="Maximum Distance" type="text" class="text_textfiled" id="tfMaxDistance" value="1000" size="2"><span class="text">m</span></tr><tr style="display : none" id="directory1"><td height="20" colspan="4" nowrap><label for="rbPosition" class="menu" title="Set position on map!">1.</label> <input type="radio" name="controls" value="Startpoint" id="rbStartpoint" title="Set position on map!" onClick="toggleControl(this);"> <label for="rbPosition" class="menu" title="Set position on map!">Pick Position</label> <label for="tfDistance" class="text" title="Distance for POI search ...">| 2. Set Distance in m</label> <input name="tfDistance" type="text" class="text_textfiled" id="tfDistance" value="1500" size="2"> <label for="Analyse" class="text" title="Press Button 'Display'"></label></tr><tr style="display : none" id="directory2"><td height="20" colspan="4" align="left" valign="top" nowrap class="menu"><label for="selectPOIType" class="text" title="Set position on map!">2.</label> <select name="selectPOIType" class="select_box" id="selectPOIType" title="Select POI type to display!"><optgroup label="Group ..."><option selected value="amenity">Amenity</option><option value="public_tran">Public Transport</option><option value="shop">Shops</option><option value="tourism">Tourism</option><option value="leisure">Leisure</option><option value="sport">Sport</option></optgroup><optgroup label="Public Transport ..."><option value="bus_stop">Bus Stop</option><option value="bus_station">Bus Station</option><option value="railway_station">Railway Station</option><option value="tram_stop">Tram Stop</option><option value="subway_entrance">Subway Entrance</option><option value="parking">Parking</option></optgroup><optgroup label="Amenity ..."><option value="atm">ATM / EC</option><option value="bank">Bank</option><option value="bureau_de_change">Bureau de Change</option><option value="biergarten">Beer Garden</option><option value="bus_station">Bus Station</option><option value="cafe">Cafe</option><option value="cinema">Cinema</option><option value="college">College</option><option value="courthouse">Courthouse</option><option value="fast_food">Fast Food</option><option value="fuel">Fuel</option><option value="hospital">Hospital</option><option value="library">Library</option><option value="nightclub">Nightclub</option><option value="parking">Parking</option><option value="pharmacy">Pharmacy</option><option value="place_of_worship">Place of Worship</option><option value="police">Police</option><option value="post_box">Post Box</option><option value="post_office">Post Office</option><option value="pub">Pub</option><option value="public_building">Public Building</option><option value="restaurant">Restaurant</option><option value="school">School</option><option value="taxi">Taxi</option><option value="telephone">Telephone</option><option value="theatre">Theatre</option><option value="toilets">Toilets</option><option value="townhall">Townhall</option><option value="university">University</option></optgroup><optgroup label="Leisure ..."><option value="sports_centre">Sports Centre</option><option value="golf_course">Golf Course</option><option value="stadium">Stadium</option><option value="track">Track</option><option value="pitch">Pitch</option><option value="water_park">Water Park</option><option value="marina">Marina</option><option value="slipway">Slipway</option><option value="fishing">Fishing</option><option value="nature_reserve">Nature Reserve</option><option value="park">Park</option><option value="playground">Playground</option><option value="garden">Garden</option><option value="ice_rink">Ice Rink</option><option value="miniature_golf">Miniature Golf</option></optgroup><optgroup label="Sport ..."><option value="9pin">Bowling (9 Pin)</option><option value="10pin">Bowling (10 Pin)</option><option value="archery">Archery</option><option value="athletics">Athletics</option><option value="australian_football">Australian Football</option><option value="baseball">Baseball</option><option value="basketball">Basketball</option><option value="beachvolleyball">Beachvolleyball</option><option value="boules">Boules</option><option value="bowls">Bowls</option><option value="canoe">Canoe</option><option value="chess">Chess</option><option value="climbing">Climbing</option><option value="cricket">Cricket</option><option value="cricket_nets">Cricket Nets</option><option value="croquet">Croquet</option><option value="cycling">Cycling</option><option value="diving">Diving</option><option value="dog_racing">Dog Racing</option><option value="equestrian">Equestrian</option><option value="football">Football</option><option value="golf">Golf</option><option value="gymnastics">Gymnastics</option><option value="hockey">Hockey</option><option value="horse_racing">Horse Racing</option><option value="korfball">Korfball</option><option value="motor">Motor</option><option value="orienteering">Orienteering</option><option value="paddle_tennis">Paddle Tennis</option><option value="squash">Squash</option><option value="paragliding">Paragliding</option><option value="pelota">Pelota</option><option value="racquet">Racquet</option><option value="rowing">Rowing</option><option value="rugby">Rugby</option><option value="schooting">Shooting</option><option value="skating">Skating</option><option value="skateboard">Skateboard</option><option value="skiing">Skiing</option><option value="soccer">Soccer</option><option value="swimming">Swimming</option><option value="table_tennis">Table Tennis</option><option value="team_handball">Team Handball</option><option value="tennis">Tennis</option><option value="volleyball">Volleyball</option></optgroup><optgroup label="Shops ..."><option value="supermarket">Supermarket</option><option value="convenience">Convenience</option><option value="bakery">Bakery</option><option value="butcher">Butcher</option><option value="kiosk">Kiosk</option></optgroup><optgroup label="Tourism ..."><option value="information">Information</option><option value="hotel">Hotel</option><option value="motel">Motel</option><option value="guest_house">Guest House</option><option value="hostel">Hostel</option></optgroup></select> <label for="Display2" class="text" title="Press Button Display">| 3. Press</label> <input name="Submit3" type="submit" class="display_button" id="Display2" onClick="doDSRequest(this);" value="Display"> <input type="submit" name="Submit4" id="Clear2" value="Clear" disabled="false" onClick="clearMarkers('POIs');"></td></tr><tr><td height="10" colspan="4" nowrap class="table_up"><img src="img/blank.gif" width="1" height="1"></td></tr><tr><td colspan="4" class="noPrint"><span class="infotext">Calculates reachable regions in given time:</span><br><a href="" onClick="closeopenTab('accessibility'); return false;" class="link_text_middle" title="Accessibility Analysis - calculates region that can be reached in given time ...">Accessibility Analysis</a></td></tr><tr style="display : none" id="accessibility" class="noPrint"><td height="30" colspan="4" nowrap><label for="rbPosition" class="text" title="Set position on map!">1.</label> <input type="radio" name="controls" value="Startpoint" id="rbStartpoint" title="Set position on map!" onClick="toggleControl(this);"> <label for="rbPosition" class="text" title="Set position on map!">Pick Position</label> <label for="rbPosition" class="text" title="Minutes for accessibility ...">| 2. Set Minutes</label> <input name="tfMinutes" class="text_textfiled" id="tfMinutes" value="15" type="text" size="5"> <label for="Analyse" class="text" title="Press Button Analyse">| 3. Press</label> <input type="submit" name="Submit" id="Analyse" value="Analyze" disabled="true" onClick="accessibilityAnalyse(this);" title="Analyze ..."><div align="right"></div></td></tr><tr><td height="10" colspan="4" nowrap class="table_up"><img src="img/blank.gif" width="1" height="1"></td></tr><tr><td colspan="4" class="noPrint"><span class="infotext">Display your GPX track:</span> <a href="" onClick="closeopenTab('upload'); return false;" class="link_text_middle" title="gpx_upload">upload</a></td></tr><tr style="display : none" id="upload" class="noPrint"><td height="30" colspan="4" nowrap><form action="" name="gpxfile" id="gpxupload"><label for="gpx_name" class="text" title="Title of your track">Title of your track</label><br /><input type="text" name="name_it" id="gpx_send" title="Name of your GPX track" /><br /><label for="gpx_content" class="text" title="insert data">insert here the content of your GPX file</label><br /><textarea name="gpx_content" cols="40" rows="3" title="insert the whole content of your GPX file using copy & paste" onfocus="javascript:this.innerHTML='';">insert the whole content of your GPX file using copy & paste

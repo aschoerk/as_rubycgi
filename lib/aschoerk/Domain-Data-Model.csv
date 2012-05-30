@@ -1,0 +1,179 @@
+Maindomain;Subdomain;System;Businesslogic;Owned Datacategory;Owned Entity;Owned Attributes;Ownership-Exceptions;References;Remarks;Source
+Businesssystems;Customer;CCD;;Personal Data;all;all;no;;;
+Businesssystems;Customer;CCD;;Addresses;all;all;no;;;
+Businesssystems;Customer;CCD;;Contactinformation;all;"E-Mail, 
+Phonenumber";no;;;
+Businesssystems;Customer;CCD;;Contact ;;;;;;
+Businesssystems;Customer;CCD;;Companydata;all;all;no;;;
+Businesssystems;Customer;CCD;;Taxdata;all;all;no;;;
+Businesssystems;Customer;CCD;;Scoring Results;all;all;no;;;
+Businesssystems;Customer;CCD;;payment methods;bank collection Germany;all;no;;;
+Businesssystems;Customer;CCD;;OptIn/OptOut;all;all;no;;;
+Businesssystems;Customer;CCD;Addresscheck;;;;;;;
+Businesssystems;Customer;CCD;History;;;;;;;
+Businesssystems;Customer;CCD;"Decisionlogic/Maintenance
+ OptIn/Optout";;;;;;;
+Businesssystems;Customer;CCD;SPAM-Sync;;;;;;;
+Businesssystems;Customer;CCD;Migrane-Sync;;;;;Person, Kunde;;
+Businesssystems;Customer;IPayment ;;payment methods;"creditcard-info
+Adresses
+paypal-ID?";all;bank collection germany;"customerID?
+Address?";;
+Businesssystems;Customer;IPayment ;blacklist;;;;;"customer
+sap-customer
+country (globals?)";;
+Businesssystems;Customer;IPayment ;chargebacks;;;;;"customer
+SAP-invoiceID";;
+Businesssystems;Customer;IPayment ;clearing;;;;;;;
+Businesssystems;Customer;IPayment ;en/decryption;;;;;;;
+Businesssystems;Customer;IPayment ;Frauddetection, online-offline;;;;;;;
+Businesssystems;Customer;IPayment ;KVK;;;;;"customer
+Contract
+country
+mandator (market?)";;
+Businesssystems;Customer;IPayment ;creditcard-reminder;;;;;;;
+Businesssystems;Customer;IPayment ;;blacklist;;;;;;
+Businesssystems;Customer;IPayment ;;payment-fraud-rules;;"IP
+Country
+paymenttypes";;;;
+Businesssystems;Billing/Rating/Charging;dito;;Tax;;;;;;
+Businesssystems;Billing/Rating/Charging;dito;;Receipt;;;;;;
+Businesssystems;Billing/Rating/Charging;dito;;Invoice;;;;;;
+Businesssystems;Billing/Rating/Charging;dito;;Cancellation Invoice;;;;;;
+Businesssystems;Billing/Rating/Charging;dito;;Credit Free Contingent;;;;;;
+Businesssystems;Billing/Rating/Charging;dito;;Invoice Line Item;;;;;;
+Businesssystems;Billing/Rating/Charging;dito;;Billing Account;;;;;;
+Businesssystems;Billing/Rating/Charging;dito;;Sales Information;;;;;;
+Businesssystems;Billing/Rating/Charging;dito;;;;;;Customer;;
+Businesssystems;Billing/Rating/Charging;dito;;;;;;Contract;;
+Businesssystems;Billing/Rating/Charging;dito;;;;;;CDR;;
+Businesssystems;Billing/Rating/Charging;dito;bisman, CDR: Matching, Rating, Billing;;;;;;;
+Businesssystems;Billing/Rating/Charging;dito;CuBi, Customer Billing;;;;;CCD, SaCos, SPAM;;
+Businesssystems;Billing/Rating/Charging;dito;FBI;;;;;SAP;;
+Businesssystems;Contract;Comet;;Contract Header;"Time/Dates, Duration
+Locks,
+State (Order) Billable,
+Contractpartner";;;"Offer, 
+Order, 
+Billing Account,
+Customer,
+Shipment,
+Sales Information, 
+Mediator,
+Deposit(s)";;
+Businesssystems;Contract;Comet;;Contract Item Group;;;;"Offer,
+Order
+Salesvariation";;
+Businesssystems;Contract;Comet;;Contract Item;"Locks, State, Duration,
+Individual Credit,
+Free Charge Variation";;;"Offercomponent,
+Provisioning ID/ServiceID,
+Sales Variation,
+Fee,
+Discountlist,
+Order, OrderItem";;
+Businesssystems;Contract;Comet;;ContractItemAttributes;;;;"CDR, Phonenr, Domainname,
+Email-Address";;
+Businesssystems;Contract;Comet;;;;;;General Terms and Conditions;;
+Businesssystems;Contract;Comet;Contract History;;;;;;;
+Businesssystems;Contract;Comet;SPAM-Sync;;;;;;;
+Businesssystems;Contract;Comet;Migrane-Sync;;;;;"Techauftrag,
+Auftragmatrix";;
+Businesssystems;Customer;CCS;;Distributionchannels;Channels, Exclusions, Fallbacks;all;;;;
+Businesssystems;Customer;CCS;Preparation of Documents;;;;Dunning Letters (SAP);;;
+Businesssystems;Customer;CCS;"Enrichment of 
+Domaindata";;;;Enrichment of Processdata;;;
+Businesssystems;Customer;Fraud;Frauddetection;;;;;;;
+Businesssystems;Customer;OMS;Sending of Documents;;;;;;;
+Businesssystems;Logistics;dito;Accept Shipping Item;;;;;;;
+Businesssystems;Logistics;dito;Consignment;;;;;;;
+Businesssystems;Logistics;dito;Create Shipment;;;;;;;
+Businesssystems;Logistics;dito;Create partial Shipment;;;;;;;
+Businesssystems;Logistics;dito;Franking and Shipment;;;;;;;
+Businesssystems;Logistics;dito;Inventory Maintenance;;;;;;;
+Businesssystems;Logistics;dito;Shipment Status;;;;;;;
+Businesssystems;Logistics;dito;Inventory Item Administration;;;;;;;
+Businesssystems;Logistics;dito;Registration Part & Complete Returns;;;;;;;
+Businesssystems;Logistics;dito;Returns: Clearing CC;;;;;;;
+Businesssystems;Logistics;dito;Returns: Notice Ordermanagement;;;;;;;
+Businesssystems;Logistics;dito;Returns: Inventory Management;;;;;;;
+Businesssystems;Logistics;dito;;;Shipment;;;;;
+Businesssystems;Logistics;dito;;;Return;;;;;
+Businesssystems;Logistics;dito;;;Shipment Service Provider;;;;;
+Businesssystems;Logistics;dito;;;Shipping Item;;;;;
+Businesssystems;Logistics;dito;;Inventory;;;;Customer;;
+Businesssystems;Logistics;dito;;;;;;Order;No Reference to Contract, ContractItem;
+Businesssystems;Logistics;dito;;;;;;SAP Logistics;;
+Businesssystems;Order;dito.;;;;;;;;
+Businesssystems;Order;dito.;;;;;;;;
+Businesssystems;Order;OM;Offer Purchase;;;;;;;
+Businesssystems;Order;OM;Offer Change;;;;;;;
+Businesssystems;Order;OM;Sales Component Purchase;;;;;;;
+Businesssystems;Order;OM;Sales Component Change;;;;;;;
+Businesssystems;Order;OM;Contract Termination;;;;;;;
+Businesssystems;Order;OM;Contract Termination Cancellation;;;;;;;
+Businesssystems;Order;OM;Contract Lock;;;;;;;
+Businesssystems;Order;OM;Contract Unlock;;;;;;;
+Businesssystems;Order;OM;Contract Item Termination;;;;;;;
+Businesssystems;Order;OM;Contract Item Termination Cancellation;;;;;;;
+Businesssystems;Order;OM;Contract Item Lock;;;;;;;
+Businesssystems;Order;OM;Contract Item Unlock;;;;;;;
+Businesssystems;Order;OM;Master Data Update;;;;;;;
+Businesssystems;Order;OM;Customer Lock;;;;;;;
+Businesssystems;Order;OM;Customer Unlock;;;;;;;
+Businesssystems;Order;OM;Contract Reassignment;;;;;;;
+Businesssystems;Order;OMI;;Dispatching Rules;;;;;;
+Businesssystems;Order;OMI;;Order;;;;"Offer, Contract,
+Customer, Shipping Item
+";;
+Businesssystems;Order;OM;;"Event 
+(Future Process Invocation)";;;;;;
+Businesssystems;Order;PSS-O;;Provisioning-Rules;;;;;;
+Businesssystems;Order;PSS-O;;PSS-API-Services;;;;;;
+Businesssystems;Product;ProMS;;"Offerspecific 
+Pricecalculation-Data";"Basic Charges, 
+Provisioning Charges
+consumption Charges,
+excepted Quantities
+discounts, 
+credit";;"data only used in one 
+other domain";;;
+Businesssystems;Product;ProMS;;"Technical Productconfiguration
+- Model";;;"data only used in one 
+other domain,
+Configurationdata not relevant 
+for Billing";;;
+Businesssystems;Product;ProMS;;"Salesvariants (Campaign??),
+Salesvariation";SAC;;"data only used in one 
+other domain";;;
+Businesssystems;Product;ProMS;;"Offer(component)specific-Accountinginformation 
+relevant for SAP";;;"data only used in one 
+other domain";;;
+Businesssystems;Product;ProMS;;"Offercomponentspecific 
+Billingrules";;;"data only used in one 
+other domain";;;
+Businesssystems;Product;ProMS;;Product specific Billingproperties. ;;Kind of Shipping,;"data only used in one 
+other domain";;;
+Businesssystems;Product;ProMS;;Offerchangepossibilities;;;"data only used in one 
+other domain";;;
+Businesssystems;Product;ProMS;Product Definition;;;;;;;
+Businesssystems;Product;ProMS;Product History;;;;;;;
+Businesssystems;Product;ProMS;Product Price Definition;;;;;;;
+Businesssystems;Product;ProMS;Product Maintenance;;;;;;;
+Businesssystems;Product;ProMS;Product Research ??;;;;;;;
+Businesssystems;Product;ProMS;Product Service Definition;;;;;;;
+Businesssystems;Product;ProMS;Product Article Configuration;;;;;;;
+Businesssystems;Product;ProMS;Product Consistency;;;;;;;
+Businesssystems;Sales;SaCos;;;;;;;;
+Businesssystems;Sales;SaCos;;Sales Channel Rules;;;;;;
+Businesssystems;Sales;Shop;Offer Evaluation;;;;;;;
+Businesssystems;Sales;Shop;Entry of Order;;;;;;;
+Businesssystems;Sales;Shop;Validation of Customer Data;;;;;;;
+Businesssystems;Sales;Shop;Linking of POS Systems;;;;;;;
+Businesssystems;Sales;Shop;Affiliate Trackbacks;;;;;;;
+Businesssystems;Sales;Shop;Export to Web Analytics;;;;;;;
+Businesssystems;Sales;Shop;;Cart;;;;;;
+Businesssystems;Sales;Shop;;Special Offers;;;;;;
+Businesssystems;Sales;Shop;;Product Dependencies;;;;;;
+Businesssystems;Sales;Shop;;Website Content;;;;;;
+Businesssystems;Sales;Shop;;Website Skins/Variants;;;;;;

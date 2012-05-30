@@ -1,0 +1,221 @@
+Antwort-HeaderQuelltext anzeigen
+-----------------------------------
+Connection	keep-alive
+Content-Encoding	gzip
+Content-Length	1408
+Content-Type	text/xml
+Date	Sun, 27 May 2012 14:39:33 GMT
+Server	Apache
+Vary	Accept-Encoding
+X-Pad	avoid browser bug
+X-Powered-By	PHP/5.2.6-1+lenny16
+
+Anfrage-HeaderQuelltext anzeigen
+---------------------------------------------
+Accept	text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Encoding	gzip, deflate
+Accept-Language	en-us,en;q=0.5
+Cache-Control	no-cache
+Connection	keep-alive
+Content-Length	295
+Content-Type	application/x-www-form-urlencoded; charset=UTF-8
+Host	openrouteservice.org
+Pragma	no-cache
+Referer	http://openrouteservice.org/
+User-Agent	Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0
+X-Prototype-Version	OpenLayers
+X-Requested-With	XMLHttpRequest
+
+
+Post:
+End	8.3829171,49.0375639
+Start	8.3866078,49.0263935
+Via	<xls:ViaPoint><xls:Position><gml:Point><gml:pos>8.3890969 49.0327246</gml:pos></gml:Point></xls:Position></xls:ViaPoint>
+_
+avoidAreas
+distunit	KM
+instructions	true
+lang	en
+noMotorways	false
+noTollways	false
+routepref	Fastest
+useTMC	false
+
+Quelle
+Start=8.3866078,49.0263935&End=8.3829171,49.0375639&Via=<xls:ViaPoint><xls:Position><gml:Point><gml:pos>8.3890969 49.0327246</gml:pos></gml:Point></xls:Position></xls:ViaPoint>&lang=en&distunit=KM&routepref=Fastest&avoidAreas=&useTMC=false&noMotorways=false&noTollways=false&instructions=true&_=
+
+
+Antwort
+<xls:XLS xmlns:xls="http://www.opengis.net/xls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" version="1.1" xsi:schemaLocation="http://www.opengis.net/xls http://schemas.opengis.net/ols/1.1.0/RouteService.xsd">
+<xls:ResponseHeader xsi:type="xls:ResponseHeaderType"></xls:ResponseHeader>
+<xls:Response xsi:type="xls:ResponseType" requestID="123456789" version="1.1" numberOfResponses="1">
+<xls:DetermineRouteResponse xsi:type="xls:DetermineRouteResponseType">
+<xls:RouteSummary>
+<xls:TotalTime>PT2M4S</xls:TotalTime>
+<xls:TotalDistance uom="KM" value="1.5"></xls:TotalDistance>
+<xls:BoundingBox srsName="EPSG:4326">
+<gml:pos>8.3826557 49.0263935</gml:pos>
+<gml:pos>8.3891096 49.0376079</gml:pos>
+</xls:BoundingBox>
+</xls:RouteSummary>
+<xls:RouteGeometry>
+<gml:LineString srsName="EPSG:4326">
+<gml:pos>8.3866078 49.0263935</gml:pos>
+<gml:pos>8.386620605005414 49.0265395177125</gml:pos>
+<gml:pos>8.3863802 49.0265606</gml:pos>
+<gml:pos>8.3863041 49.0265673</gml:pos>
+<gml:pos>8.3864547 49.0272646</gml:pos>
+<gml:pos>8.3864654 49.0273144</gml:pos>
+<gml:pos>8.3868807 49.0292372</gml:pos>
+<gml:pos>8.3870128 49.0298483</gml:pos>
+<gml:pos>8.3870483 49.0299853</gml:pos>
+<gml:pos>8.3871567 49.0304621</gml:pos>
+<gml:pos>8.3872339 49.0308373</gml:pos>
+<gml:pos>8.3872383 49.0309187</gml:pos>
+<gml:pos>8.3872454 49.0309556</gml:pos>
+<gml:pos>8.3872464 49.0309596</gml:pos>
+<gml:pos>8.3873234 49.0312861</gml:pos>
+<gml:pos>8.3873434 49.0314202</gml:pos>
+<gml:pos>8.3873771 49.0315935</gml:pos>
+<gml:pos>8.3873964 49.0316827</gml:pos>
+<gml:pos>8.3874007 49.0317558</gml:pos>
+<gml:pos>8.387388 49.0318143</gml:pos>
+<gml:pos>8.387357 49.0318821</gml:pos>
+<gml:pos>8.387598 49.0319883</gml:pos>
+<gml:pos>8.3882396 49.0322556</gml:pos>
+<gml:pos>8.3889981 49.032582</gml:pos>
+<gml:pos>8.3891096 49.0326379</gml:pos>
+<gml:pos>8.389060148313702 49.03268911063855</gml:pos>
+<gml:pos>8.3890969 49.0327246</gml:pos>
+<gml:pos>8.389060148313702 49.03268911063855</gml:pos>
+<gml:pos>8.3883224 49.0334531</gml:pos>
+<gml:pos>8.3876425 49.0340491</gml:pos>
+<gml:pos>8.3875761 49.0340932</gml:pos>
+<gml:pos>8.3875334 49.0341223</gml:pos>
+<gml:pos>8.3874719 49.0341643</gml:pos>
+<gml:pos>8.3868771 49.0345653</gml:pos>
+<gml:pos>8.3865091 49.0348234</gml:pos>
+<gml:pos>8.3857022 49.0354389</gml:pos>
+<gml:pos>8.384897 49.0360767</gml:pos>
+<gml:pos>8.3844835 49.0363858</gml:pos>
+<gml:pos>8.3838353 49.0367705</gml:pos>
+<gml:pos>8.3826557 49.0373843</gml:pos>
+<gml:pos>8.3826812 49.0374513</gml:pos>
+<gml:pos>8.3827722 49.0375213</gml:pos>
+<gml:pos>8.3828671 49.0375937</gml:pos>
+<gml:pos>8.382892089793398 49.037607903434434</gml:pos>
+<gml:pos>8.3829171 49.0375639</gml:pos>
+</gml:LineString>
+</xls:RouteGeometry>
+<xls:RouteInstructionsList xls:lang="en">
+<xls:RouteInstruction duration="PT3S" description="Actionno. 1">
+<xls:Instruction>Start (West) on Rhode-Island-Allee</xls:Instruction>
+<xls:distance value="0.0" uom="KM"></xls:distance>
+<xls:RouteInstructionGeometry>
+<gml:LineString srsName="EPSG:4326">
+<gml:pos>8.3866078 49.0263935</gml:pos>
+<gml:pos>8.386620605005414 49.0265395177125</gml:pos>
+<gml:pos>8.3863802 49.0265606</gml:pos>
+<gml:pos>8.3863041 49.0265673</gml:pos>
+</gml:LineString>
+</xls:RouteInstructionGeometry>
+</xls:RouteInstruction>
+<xls:RouteInstruction duration="PT35S" description="Actionno. 2">
+<xls:Instruction>Drive right on ErzbergerstraÃŸe</xls:Instruction>
+<xls:distance value="0.6" uom="KM"></xls:distance>
+<xls:RouteInstructionGeometry>
+<gml:LineString srsName="EPSG:4326">
+<gml:pos>8.3863041 49.0265673</gml:pos>
+<gml:pos>8.3864547 49.0272646</gml:pos>
+<gml:pos>8.3864654 49.0273144</gml:pos>
+<gml:pos>8.3868807 49.0292372</gml:pos>
+<gml:pos>8.3870128 49.0298483</gml:pos>
+<gml:pos>8.3870483 49.0299853</gml:pos>
+<gml:pos>8.3871567 49.0304621</gml:pos>
+<gml:pos>8.3872339 49.0308373</gml:pos>
+<gml:pos>8.3872383 49.0309187</gml:pos>
+<gml:pos>8.3872454 49.0309556</gml:pos>
+<gml:pos>8.3872464 49.0309596</gml:pos>
+<gml:pos>8.3873234 49.0312861</gml:pos>
+<gml:pos>8.3873434 49.0314202</gml:pos>
+<gml:pos>8.3873771 49.0315935</gml:pos>
+<gml:pos>8.3873964 49.0316827</gml:pos>
+<gml:pos>8.3874007 49.0317558</gml:pos>
+<gml:pos>8.387388 49.0318143</gml:pos>
+<gml:pos>8.387357 49.0318821</gml:pos>
+</gml:LineString>
+</xls:RouteInstructionGeometry>
+</xls:RouteInstruction>
+<xls:RouteInstruction duration="PT8S" description="Actionno. 3">
+<xls:Instruction>Drive right on Am Wald</xls:Instruction>
+<xls:distance value="0.2" uom="KM"></xls:distance>
+<xls:RouteInstructionGeometry>
+<gml:LineString srsName="EPSG:4326">
+<gml:pos>8.387357 49.0318821</gml:pos>
+<gml:pos>8.387598 49.0319883</gml:pos>
+<gml:pos>8.3882396 49.0322556</gml:pos>
+<gml:pos>8.3889981 49.032582</gml:pos>
+<gml:pos>8.3891096 49.0326379</gml:pos>
+</gml:LineString>
+</xls:RouteInstructionGeometry>
+</xls:RouteInstruction>
+<xls:RouteInstruction duration="PT13S" description="Actionno. 4">
+<xls:Instruction>Drive left</xls:Instruction>
+<xls:distance value="0.0" uom="KM"></xls:distance>
+<xls:RouteInstructionGeometry>
+<gml:LineString srsName="EPSG:4326">
+<gml:pos>8.3891096 49.0326379</gml:pos>
+<gml:pos>8.389060148313702 49.03268911063855</gml:pos>
+<gml:pos>8.3890969 49.0327246</gml:pos>
+</gml:LineString>
+</xls:RouteInstructionGeometry>
+</xls:RouteInstruction>
+<xls:RouteInstruction duration="PT46S" description="Actionno. 5">
+<xls:Instruction>ViaPoint 1 - Drive straight forward on Klammweg</xls:Instruction>
+<xls:distance value="0.7" uom="KM"></xls:distance>
+<xls:RouteInstructionGeometry>
+<gml:LineString srsName="EPSG:4326">
+<gml:pos>8.3890969 49.0327246</gml:pos>
+<gml:pos>8.389060148313702 49.03268911063855</gml:pos>
+<gml:pos>8.3883224 49.0334531</gml:pos>
+<gml:pos>8.3876425 49.0340491</gml:pos>
+<gml:pos>8.3875761 49.0340932</gml:pos>
+<gml:pos>8.3875334 49.0341223</gml:pos>
+<gml:pos>8.3874719 49.0341643</gml:pos>
+<gml:pos>8.3868771 49.0345653</gml:pos>
+<gml:pos>8.3865091 49.0348234</gml:pos>
+<gml:pos>8.3857022 49.0354389</gml:pos>
+<gml:pos>8.384897 49.0360767</gml:pos>
+<gml:pos>8.3844835 49.0363858</gml:pos>
+<gml:pos>8.3838353 49.0367705</gml:pos>
+<gml:pos>8.3826557 49.0373843</gml:pos>
+</gml:LineString>
+</xls:RouteInstructionGeometry>
+</xls:RouteInstruction>
+<xls:RouteInstruction duration="PT0S" description="Actionno. 6">
+<xls:Instruction>Drive right on Salbeiweg</xls:Instruction>
+<xls:distance value="0.0" uom="KM"></xls:distance>
+<xls:RouteInstructionGeometry>
+<gml:LineString srsName="EPSG:4326">
+<gml:pos>8.3826557 49.0373843</gml:pos>
+<gml:pos>8.3826812 49.0374513</gml:pos>
+</gml:LineString>
+</xls:RouteInstructionGeometry>
+</xls:RouteInstruction>
+<xls:RouteInstruction duration="PT7S" description="Actionno. 7">
+<xls:Instruction>Drive right - Arrived at destination!</xls:Instruction>
+<xls:distance value="0.0" uom="KM"></xls:distance>
+<xls:RouteInstructionGeometry>
+<gml:LineString srsName="EPSG:4326">
+<gml:pos>8.3826812 49.0374513</gml:pos>
+<gml:pos>8.3827722 49.0375213</gml:pos>
+<gml:pos>8.3828671 49.0375937</gml:pos>
+<gml:pos>8.382892089793398 49.037607903434434</gml:pos>
+<gml:pos>8.3829171 49.0375639</gml:pos>
+</gml:LineString>
+</xls:RouteInstructionGeometry>
+</xls:RouteInstruction>
+</xls:RouteInstructionsList>
+</xls:DetermineRouteResponse>
+</xls:Response>
+</xls:XLS>
