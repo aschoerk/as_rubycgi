@@ -148,6 +148,52 @@ class Geo
         }
   end
 
+  def self.create_kml(track, wpts)
+    res = "<coordinates>"
+    track.inject(res) {|a, pt|
+      res += "\n"
+      res += pt.lon.to_s
+      res += ","
+      res += pt.lat.to_s
+      res += ",0"
+    }
+    res += "</coordinates>"
+    wptsres = ""
+    if wpts and wpts.length > 0
+      (0...wpts.length).each {|i|
+         wptsres += %Q{<Placemark>
+                         <name>KM #{i+1}</name>
+                         <Point><coordinates>#{wpts[i].lon},#{wpts[i].lat}</coordinates></Point>
+                       </Placemark>
+                      }
+      }
+    end
+
+    %Q{<?xml version="1.0" encoding="UTF-8"?>
+       <kml xmlns="http://www.opengis.net/kml/2.2">
+       <Document>
+         <name>convroute</name>
+        <Style id="sn_ylw-pushpin">
+            <LineStyle>
+              <color>ffff5500</color>
+              <width>2</width>
+            </LineStyle>
+          </Style>
+         <Placemark>
+           <name>track</name>
+           <styleUrl>#sn_ylw-pushpin</styleUrl>
+           <LineString>
+              <extrude>1</extrude>
+              <tessellate>1</tessellate>
+              <altitudeMode>relativeToGround</altitudeMode>
+              #{res}
+           </LineString>
+         </Placemark>
+         #{wptsres}
+       </Document>
+      </kml>}
+  end
+
 
 end
 
@@ -209,9 +255,9 @@ class RouteConverter
     end
     res = ConvParams.new
     res.src_url = if_array_else_single cgi.params["srcurl"]
-    res.src_gpx = if_array_else_single cgi.params["srcgpx"]
-    res.smooth = cgi.key?("smooth")
-    res.correct_via = cgi.key?("correct_via")
+    #res.src_gpx = if_array_else_single cgi.params["srcgpx"]
+    res.smooth = true # cgi.key?("smooth")
+    res.correct_via = true # cgi.key?("correct_via")
     begin
       res.distance = if_array_else_single(cgi.params['distance']).to_i
     rescue
@@ -223,8 +269,8 @@ class RouteConverter
       res.distance = 1000
     end
     begin
-      res.src_track = Geo::extract_track_from_gpx(res.src_gpx)
-      res.src_len = Geo::length(res.src_track)
+      #res.src_track = Geo::extract_track_from_gpx(res.src_gpx)
+      #res.src_len = Geo::length(res.src_track)
     rescue Exception => e
       puts "exception: " + e.to_s
     end
@@ -270,16 +316,16 @@ class RouteConverter
         res
       end
     }
-    dst_track = Geo::map_track_to_gpx params.src_track
-    xml = XmlSimple.xml_in(params.src_gpx)
-    xml['trk'][0]['trkseg'][0]['trkpt'] = dst_track
+    # dst_track = Geo::map_track_to_gpx params.src_track
+    # xml = XmlSimple.xml_in(params.src_gpx)
+    # xml['trk'][0]['trkseg'][0]['trkpt'] = dst_track
     wpt_track = Geo::calc_fixed_distance_points(params.src_track,params.distance)
-    wpts = Geo::map_track_to_gpx wpt_track
-    (0...wpts.length).each {|ix|
-      wpts[ix]['name'] = (ix+1).to_s + 'km'
-    }
-    xml['wpt'] =wpts
-    params.res_gpx = XmlSimple.xml_out(xml,'rootname' => 'gpx') if params.smooth
+    #wpts = Geo::map_track_to_gpx wpt_track
+    #(0...wpts.length).each {|ix|
+    #  wpts[ix]['name'] = (ix+1).to_s + 'km'
+    #}
+    # xml['wpt'] =wpts
+    params.res_gpx = Geo::create_kml(params.src_track, wpt_track) # XmlSimple.xml_out(xml,'rootname' => 'gpx') if params.smooth
     params.res_len = Geo::length(track)
   end
 
@@ -364,21 +410,22 @@ class RouteConverter
                               cgi.textarea('name' => 'srcurl', 'cols' => '100', 'rows' => '4') { params.src_url }
                             }
                       } +
-                          cgi.tr {
-                            cgi.td { "Source GPX" } +
-                                cgi.td {
-                                  cgi.textarea('name' => 'srcgpx', 'cols' => '100', 'rows' => '10') { params.src_gpx }
-                                }
-                          } +
+                          #cgi.tr {
+                          #  cgi.td { "Source GPX" } +
+                          #      cgi.td {
+                          #        cgi.textarea('name' => 'srcgpx', 'cols' => '100', 'rows' => '10') { params.src_gpx }
+                          #      }
+                          #} +
                           cgi.tr {
                             cgi.td { "---" } +
                                 cgi.td {
                                   cgi.p{"Distance:" +
-                                  cgi.input('type' => 'text', 'name' => 'distance', 'value' => params.distance.to_s)+
-                                  " Smooth:" +
-                                  cgi.input('type' => 'checkbox', 'name' => 'smooth', 'value' => "", "checked" => (params.smooth ? 'true' : nil))+
-                                  " Correct Vias:"+
-                                  cgi.input('type' => 'checkbox', 'name' => 'correct_via', 'value' => "", 'checked' => (params.correct_via ? 'true' : nil))
+                                  cgi.input('type' => 'text', 'name' => 'distance', 'value' => params.distance.to_s)
+                                  # +
+                                  #" Smooth:" +
+                                  #cgi.input('type' => 'checkbox', 'name' => 'smooth', 'value' => "", "checked" => (params.smooth ? 'true' : nil))+
+                                  #" Correct Vias:"+
+                                  #cgi.input('type' => 'checkbox', 'name' => 'correct_via', 'value' => "", 'checked' => (params.correct_via ? 'true' : nil))
                                     }
                                 }
                           } +

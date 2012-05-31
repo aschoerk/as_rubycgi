@@ -1,0 +1,41 @@
+http://www.gpsvisualizer.com/map?output_home
+
+Antwort-Header  Quelltext anzeigen
+Content-Type	text/html; charset=UTF-8
+Date	Wed, 30 May 2012 18:02:25 GMT
+Server	Apache/2.2.3 (CentOS)
+Transfer-Encoding	chunked
+Anfrage-Header  Quelltext anzeigen
+Accept	text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Encoding	gzip, deflate
+Accept-Language	en-us,en;q=0.5
+Connection	keep-alive
+Cookie	__utma=68791495.1413652427.1337272380.1338361447.1338400814.7; __utmz=68791495.1338024401.3.3.utmccn=(referral)|utmcsr=tom-carden.co.uk|utmcct=/googlegpx/|utmcmd=referral; __utmc=68791495; __utmb=68791495
+Host	www.gpsvisualizer.com
+Referer	http://www.gpsvisualizer.com/
+User-Agent	Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0
+Request Headers From Upload Stream
+Content-Length	4741
+Content-Type	multipart/form-data; boundary=---------------------------10960822378842216172065012830
+
+
+
+
+-----------------------------10960822378842216172065012830
+Content-Disposition: form-data; name="uploaded_file_1"; filename="short.gpx"
+Content-Type: application/octet-stream
+
+<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w4.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" creator="www.OpenRouteService.org"> <wpt name="1km" lon="8.38713765312907" lat="49.0325414111999" /> <wpt name="2km" lon="8.38915472282447" lat="49.0414304105565" /> <trk> <trkseg> <trkpt lon="8.3866078" lat="49.0263935" /> <trkpt lon="8.38662060500541" lat="49.0265395177125" /> <trkpt lon="8.3870986" lat="49.0264976" /> <trkpt lon="8.387691" lat="49.0264387" /> <trkpt lon="8.387938" lat="49.026411" /> <trkpt lon="8.3880429" lat="49.0264063" /> <trkpt lon="8.3880561" lat="49.0264596" /> <trkpt lon="8.38815089161119" lat="49.0268441703931" /> <trkpt lon="8.38815089161119" lat="49.0268441703931" /> <trkpt lon="8.38815089161119" lat="49.0268441703931" /> <trkpt lon="8.3882052" lat="49.0270645" /> <trkpt lon="8.3882233" lat="49.0271376" /> <trkpt lon="8.3881088" lat="49.0271473" /> <trkpt lon="8.3877944" lat="49.0271769" /> <trkpt lon="8.3878573" lat="49.0274655" /> <trkpt lon="8.3878969" lat="49.0276494" /> <trkpt lon="8.3882368" lat="49.0291472" /> <trkpt lon="8.38830092876662" lat="49.029437450455" /> <trkpt lon="8.38830092876662" lat="49.029437450455" /> <trkpt lon="8.38830092876662" lat="49.029437450455" /> <trkpt lon="8.3882368" lat="49.0291472" /> <trkpt lon="8.3869467" lat="49.0292322" /> <trkpt lon="8.3870754" lat="49.0298389" /> <trkpt lon="8.387105" lat="49.0299785" /> <trkpt lon="8.3870483" lat="49.0299853" /> <trkpt lon="8.3871567" lat="49.0304621" /> <trkpt lon="8.3869415" lat="49.0307969" /> <trkpt lon="8.3869744" lat="49.0309621" /> <trkpt lon="8.386924" lat="49.0309826" /> <trkpt lon="8.3868938" lat="49.0309923" /> <trkpt lon="8.3868413" lat="49.0309965" /> <trkpt lon="8.3869852" lat="49.031723" /> <trkpt lon="8.3869989" lat="49.0317916" /> <trkpt lon="8.3870021" lat="49.0318917" /> <trkpt lon="8.3870071" lat="49.0319297" /> <trkpt lon="8.3873347" lat="49.0334647" /> <trkpt lon="8.3874372" lat="49.0339338" /> <trkpt lon="8.3874362" lat="49.0340241" /> <trkpt lon="8.3874719" lat="49.0341643" /> <trkpt lon="8.3875034" lat="49.0342927" /> <trkpt lon="8.3875312" lat="49.0343665" /> <trkpt lon="8.3876451" lat="49.034895" /> <trkpt lon="8.3876475" lat="49.0349792" /> <trkpt lon="8.3876597" lat="49.0350385" /> <trkpt lon="8.3876633" lat="49.0350557" /> <trkpt lon="8.3876768" lat="49.0351124" /> <trkpt lon="8.3877076" lat="49.0351963" /> <trkpt lon="8.3877446" lat="49.0353663" /> <trkpt lon="8.3878526" lat="49.0358638" /> <trkpt lon="8.3878484" lat="49.0360397" /> <trkpt lon="8.388083" lat="49.036846" /> <trkpt lon="8.3880973" lat="49.0368882" /> <trkpt lon="8.3881535" lat="49.0369511" /> <trkpt lon="8.3882676" lat="49.0373463" /> <trkpt lon="8.3883095" lat="49.0375071" /> <trkpt lon="8.388533" lat="49.038562" /> <trkpt lon="8.3891242" lat="49.0412919" /> <trkpt lon="8.3892586" lat="49.0419018" /> <trkpt lon="8.3891449" lat="49.0420473" /> <trkpt lon="8.3891611" lat="49.0422319" /> <trkpt lon="8.3891449" lat="49.0423532" /> <trkpt lon="8.3891182" lat="49.0425132" /> <trkpt lon="8.3891155" lat="49.0426152" /> <trkpt lon="8.3891274" lat="49.0427266" /> <trkpt lon="8.3892089" lat="49.0430893" /> <trkpt lon="8.3892241" lat="49.0431163" /> <trkpt lon="8.3892507" lat="49.043141" /> <trkpt lon="8.3893111" lat="49.0431915" /> <trkpt lon="8.3893416" lat="49.0432271" /> <trkpt lon="8.389363" lat="49.0432672" /> <trkpt lon="8.3896728" lat="49.0446815" /> <trkpt lon="8.3891829" lat="49.0447022" /> <trkpt lon="8.38909442261513" lat="49.044710283306" /> <trkpt lon="8.3890969" lat="49.0447374" /> </trkseg> </trk> </gpx>
+-----------------------------10960822378842216172065012830
+Content-Disposition: form-data; name="format"
+
+google
+-----------------------------10960822378842216172065012830
+Content-Disposition: form-data; name="convert_format"
+
+
+-----------------------------10960822378842216172065012830
+Content-Disposition: form-data; name="form"
+
+google
+-----------------------------10960822378842216172065012830--
