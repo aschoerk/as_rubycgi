@@ -334,6 +334,7 @@ class RouteConverter
   end
 
   def log(s)
+
     f = File.new(File.dirname(__FILE__) +"/log.txt","a+")
     f.write(s)
     f.write("\n")
