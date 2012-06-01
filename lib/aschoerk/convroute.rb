@@ -598,14 +598,16 @@ class RouteConverter
         # f = Tempfile.open("kmlfile", dirname + "/..")
         # f.write params.src_gpx
         # f.close
-        log "before writing kml"
-        newname = dirname+"/../tmp/test.kml"
+        name = Time.now.to_i.to_s + ".kml"
+        log "before writing kml to " + name
+        
+        newname = dirname+"/../tmp/" + name
         f = File.open(newname,"w+")
         f.write params.res_gpx
         f.close
         log "after writing kml"
         # File.rename(f.path,newname)
-        res = kml(cgi,params, "test.kml")
+        res = kml(cgi,params, name)
         log "after kml"
         res
       end
