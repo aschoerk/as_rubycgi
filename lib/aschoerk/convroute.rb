@@ -333,6 +333,14 @@ class RouteConverter
     params.res_len = Geo::length(track)
   end
 
+  def log(s)
+    f = File.new(File.dirname(__FILE__) +"/log.txt","a+")
+    f.write(s)
+    f.write("\n")
+    f.close
+  end
+
+
   def do_routing(param)
     return if not param.src_url_object
     require 'httptester'
@@ -351,19 +359,28 @@ class RouteConverter
     http_params.params = ajax_param(param)
     http_params.post = "post"
     new_params = HttpProcessor.new(http_params).process
-    puts "received body: " + new_params.recv_body
+
+    log "received body: " + new_params.recv_body
     param.src_track = Geo::extract_track_from_gml(new_params.recv_body)
+    log "after extract track"
     param.src_len = Geo::length(param.src_track)
+    log "after length: " + param.src_len.to_s
     param.src_gpx = Geo::create_src_gpx(param.src_track)
+    log "after create src gox: " + param.src_len.to_s
   end
 
 
   def process(params)
     do_routing(params)
     if params.src_track
+      log "before do smoothen"
       smoothen(params)
+      log "after do smoothen"
       if params.correct_via
-        create_URL(params)
+        log "before create_URL"
+        res = create_URL(params)
+        log "after create_URL"
+        res
       end
     end
     params
@@ -565,26 +582,32 @@ class RouteConverter
     }
   end
 
-  require 'tempfile'
+  # require 'tempfile'
   def initCGI(cgi)
     cgi.out {
       params = interpret_params(cgi)
       puts "inputparams" + params.to_s
       params = process(params)
       if not params.kml
-        conv_route_cgi(cgi, params)
+        log "before conv_route_cgi"
+        res = conv_route_cgi(cgi, params)
+        log "after conv_route_cgi"
+        res
       else
         dirname = File.dirname(__FILE__)
         # f = Tempfile.open("kmlfile", dirname + "/..")
         # f.write params.src_gpx
         # f.close
-        $stderr.puts "errout"
+        log "before writing kml"
         newname = dirname+"/../tmp/test.kml"
         f = File.open(newname,"w+")
         f.write params.res_gpx
         f.close
+        log "after writing kml"
         # File.rename(f.path,newname)
-        kml(cgi,params, "test.kml")
+        res = kml(cgi,params, "test.kml")
+        log "after kml"
+        res
       end
     }
     return cgi
