@@ -1,7 +1,10 @@
-#!/usr/bin/env ruby
+#!/usr/bin/ruby -w
 $:.unshift File.join(File.dirname(__FILE__), '.', '')
 require 'cgi'
 require 'xmlsimple'
+
+
+@@test_mode = true
 
 class Geo
   Coordinate = Struct.new('Coordinate', :lat, :lon)
@@ -200,7 +203,7 @@ end
 
 class RouteConverter
 
-  ConvParams = Struct.new('ConvParams', :src_url, :src_url_object, :src_gpx, :src_gpx_object, :src_track, :src_len, :distance, :smooth, :correct_via, :res_url, :res_gpx, :res_len)
+  ConvParams = Struct.new('ConvParams', :kml, :src_url, :src_url_object, :src_gpx, :src_gpx_object, :src_track, :src_len, :distance, :smooth, :correct_via, :res_url, :res_gpx, :res_len)
   UrlInfo = Struct.new('UrlInfo', :address, :params, :start, :end, :via)
 
   def analyze_URL(url)
@@ -258,6 +261,7 @@ class RouteConverter
     #res.src_gpx = if_array_else_single cgi.params["srcgpx"]
     res.smooth = true # cgi.key?("smooth")
     res.correct_via = true # cgi.key?("correct_via")
+    res.kml = cgi.key?("kml")
     begin
       res.distance = if_array_else_single(cgi.params['distance']).to_i
     rescue
@@ -365,17 +369,12 @@ class RouteConverter
     params
   end
 
-
-  def initCGI(cgi)
-    cgi.out {
-      params = interpret_params(cgi)
-      puts "inputparams" + params.to_s
-      params = process(params)
-      cgi.html {
-        cgi.head {
-          cgi.title { "Some Conversion Tools" } +
-              cgi.style('type' => "text/css") {
-                "\nbody { background-color:lightgrey;
+  def conv_route_cgi(cgi, params)
+    cgi.html {
+      cgi.head {
+        cgi.title { "Some Conversion Tools" } +
+            cgi.style('type' => "text/css") {
+              "\nbody { background-color:lightgrey;
                  margin-left:100px; }
           \n* { color:blue; }
           \nh1 { font-size:300%;
@@ -398,65 +397,195 @@ class RouteConverter
           \n#navi { float:left; margin: 0 0 1em 1em; padding: 0 }
           \n#table { float:right }
           "
-              }
-        } +
-            cgi.body {
-              cgi.h1 { "Convert Route" } +
-                  cgi.form('name' => "conversionform") {
-                    cgi.table {
-                      cgi.tr {
-                        cgi.td { "Source Url" } +
-                            cgi.td {
-                              cgi.textarea('name' => 'srcurl', 'cols' => '100', 'rows' => '4') { params.src_url }
-                            }
-                      } +
-                          #cgi.tr {
-                          #  cgi.td { "Source GPX" } +
-                          #      cgi.td {
-                          #        cgi.textarea('name' => 'srcgpx', 'cols' => '100', 'rows' => '10') { params.src_gpx }
-                          #      }
-                          #} +
-                          cgi.tr {
-                            cgi.td { "---" } +
-                                cgi.td {
-                                  cgi.p{"Distance:" +
-                                  cgi.input('type' => 'text', 'name' => 'distance', 'value' => params.distance.to_s)
+            }
+      } +
+          cgi.body {
+            cgi.h1 { "Convert Route" } +
+                cgi.form('METHOD' => 'get', 'name' => "conversionform") {
+                  cgi.table {
+                    cgi.tr {
+                      cgi.td { "Source Url" } +
+                          cgi.td {
+                            cgi.textarea('name' => 'srcurl', 'cols' => '100', 'rows' => '4') { params.src_url }
+                          }
+                    } +
+                        #cgi.tr {
+                        #  cgi.td { "Source GPX" } +
+                        #      cgi.td {
+                        #        cgi.textarea('name' => 'srcgpx', 'cols' => '100', 'rows' => '10') { params.src_gpx }
+                        #      }
+                        #} +
+                        cgi.tr {
+                          cgi.td { "---" } +
+                              cgi.td {
+                                cgi.p{"Distance:" +
+                                    cgi.input('type' => 'text', 'name' => 'distance', 'value' => params.distance.to_s)
                                   # +
                                   #" Smooth:" +
                                   #cgi.input('type' => 'checkbox', 'name' => 'smooth', 'value' => "", "checked" => (params.smooth ? 'true' : nil))+
                                   #" Correct Vias:"+
                                   #cgi.input('type' => 'checkbox', 'name' => 'correct_via', 'value' => "", 'checked' => (params.correct_via ? 'true' : nil))
-                                    }
                                 }
-                          } +
-                          cgi.tr {
-                            cgi.td { "Infos" } +
-                                cgi.td {
-                                  cgi.p{"Src-Length: " + (params.src_len ? params.src_len.round.to_s : 0).to_s + "m Smoothened-Length: " + (params.res_len ? params.res_len.round.to_s : 0).to_s + "m"}
-                                }
-                          } +
-                          cgi.tr {
-                            cgi.td {
-                              cgi.input('type' => "submit", 'name' => "process", 'value' => "convert")
-                              # + cgi.input('type'=>"submit",'name'=>"to_csv",'value'=>"to csv")
-                            }
-                          } +
-                          cgi.tr {
-                            cgi.td { "Result Url" } +
-                                cgi.td {
-                                  cgi.textarea('name' => 'resurl', 'cols' => '100', 'rows' => '4') { params.res_url }
-                                }
-                          } +
-                          cgi.tr {
-                            cgi.td { "Result GPX" } +
-                                cgi.td {
-                                  cgi.textarea('name' => 'resgpx', 'cols' => '100', 'rows' => '10') { params.res_gpx }
-                                }
+                              }
+                        } +
+                        cgi.tr {
+                          cgi.td { "Infos" } +
+                              cgi.td {
+                                cgi.p{"Src-Length: " + (params.src_len ? params.src_len.round.to_s : 0).to_s + "m Smoothened-Length: " + (params.res_len ? params.res_len.round.to_s : 0).to_s + "m"}
+                              }
+                        } +
+                        cgi.tr {
+                          cgi.td {
+                            cgi.input('type' => "submit", 'name' => "process", 'value' => "convert") +
+                            cgi.input('type' => "submit", 'name' => "kml", 'value' => "kml")
                           }
+                        }
                     }
+                  } +
+                cgi.form('name' => "resultform") {
+                    cgi.table {
+                        cgi.tr {
+                          cgi.td { "Result Url" } +
+                              cgi.td {
+                                cgi.textarea('name' => 'resurl', 'cols' => '100', 'rows' => '4') { params.res_url }
+                              }
+                        } +
+                        cgi.tr {
+                          cgi.td { "Result GPX" } +
+                              cgi.td {
+                                cgi.textarea('name' => 'resgpx', 'cols' => '100', 'rows' => '10') { params.res_gpx }
+                              }
+                        }
                   }
+                }
+          }
+    }
+  end
+
+# @param [Object] cgi
+# @param [Object] params
+  def kml(cgi, params, path)
+    cgi.html {
+      cgi.head {
+        #'<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />\n'
+        #+ '<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>\n'
+        cgi.meta('name' => 'viewport', 'content' => 'initial-scale=1.0, user-scalable=no') +
+        cgi.title {'Google Maps JavaScript API v3 Example: Map Layers'} +
+        cgi.meta('http-equiv' => 'content-type', 'content' => 'text/html; charset=UTF-8') +
+        cgi.script('type' => 'text/javascript', 'src' => 'http://maps.google.com/maps/api/js?sensor=false') +
+        cgi.script('type' => 'text/javascript') {
+          %Q{ var map;
+
+              var kmlLayer = null;
+              var currentLayer = null;
+
+              function initialize() {
+                var myLatlng = new google.maps.LatLng(37.42166, -119.272);
+                var myOptions = {
+                  zoom: 5,
+                  center: myLatlng,
+                  mapTypeId: google.maps.MapTypeId.ROADMAP
+                }
+                map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+
+                kml();
+              }
+
+              function kml() {
+                url = document.getElementById("kmlUrl").value;
+                clearLayer();
+                kmlLayer = new google.maps.KmlLayer(url, { map: map });
+                currentLayer = kmlLayer;
+              }
+
+              function clearLayer() {
+                if (currentLayer != null) {
+                  currentLayer.setMap(null);
+                }
+              }
+
+              function kmlKeyUp(e) {
+                var keyCode;
+
+                if (window.event) {
+                    keyCode = window.event.keyCode;
+                } else if (e) {
+                    keyCode = e.which;
+                }
+
+                if (keyCode == 13) {
+                    document.getElementById("kmlUrl").blur();
+                    document.getElementById("kmlButton").click();
+                }
+              }
+          }
+        } +
+        cgi.style {
+          %Q{
+            body {
+              font-family: sans-serif;
             }
+
+            #map_canvas {
+              border: 1px solid black;
+            }
+
+            #layers {
+              border: 1px solid #000088;
+              background-color: #e0e0e0;
+              width: 1024px;
+              margin-top: 1px;
+            }
+
+            #heading {
+              font-weight: bold;
+              margin: 2px;
+            }
+          }
+        }
+      } +
+      cgi.body('style'=>'margin:0px; padding:0px;', 'onload'=>'initialize()') {
+        cgi.div('id'=>'map_canvas','style'=>'width:1024px; height:800px') +
+        cgi.div('id' => 'layers') {
+          cgi.div('id'=>'heading') {'Layers'} +
+          cgi.table {
+            cgi.tr {
+              cgi.td {
+                cgi.input('checked'=>nil,'onclick'=>'kml()','type'=>'radio','name'=>'layer','id'=>'kmlButton','value'=>'kml')
+              } +
+              cgi.td('align'=>'left') {
+                'KML:' +
+                cgi.input('type'=>'text','size'=>'60','id'=>'kmlUrl','onkeyup'=>'kmlKeyUp(event)',
+                          'value'=>@@test_mode ? 'http://aschoerk.de/tmp/short.kml' : 'http://aschoerk.de/tmp/' +path)
+              }
+            }
+          }
+        }
       }
+    }
+  end
+
+  require 'tempfile'
+  def initCGI(cgi)
+    cgi.out {
+      params = interpret_params(cgi)
+      puts "inputparams" + params.to_s
+      params = process(params)
+      if not params.kml
+        conv_route_cgi(cgi, params)
+      else
+        dirname = File.dirname(__FILE__)
+        # f = Tempfile.open("kmlfile", dirname + "/..")
+        # f.write params.src_gpx
+        # f.close
+        $stderr.puts "errout"
+        newname = dirname+"/../tmp/test.kml"
+        f = File.open(newname,"w+")
+        f.write params.res_gpx
+        f.close
+        # File.rename(f.path,newname)
+        kml(cgi,params, "test.kml")
+      end
     }
     return cgi
   end
@@ -467,6 +596,7 @@ def initCGI (cgi)
 end
 
 if __FILE__ == $0
+  @@test_mode = false
   cgi = CGI.new("html3")
   initCGI(cgi)
 end

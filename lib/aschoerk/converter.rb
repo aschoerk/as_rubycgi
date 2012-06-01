@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/ruby -w
 $:.unshift File.join(File.dirname(__FILE__),'.','')
 require 'cgi'
 if RUBY_VERSION >= "1.9"
