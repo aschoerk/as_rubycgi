@@ -418,12 +418,25 @@ class RouteConverter
       } +
           cgi.body {
             cgi.h1 { "Convert Route" } +
+                cgi.div {
+                  'In "Source Url" you can input a path create with: ' +
+                  cgi.a('href' => "http://openrouteservice.org") {"openrouteservice.org" }  +
+                  %Q{
+                     (start, end, arbitrary via points). Get the URL by pressing on "Route Link" which appears after calculation of a route.</b>
+                    Cut and paste it into the input field and
+                    press "convert" to create a smoother path in Result Url, and KML-Data. The KML-Data contains the routed track and
+                    waypoints in the Distance of default 1000 meters. If you press "show" the track and the waypoints will be shown using google maps.
+                    }
+                } +
+
                 cgi.form('METHOD' => 'get', 'name' => "conversionform") {
                   cgi.table {
                     cgi.tr {
                       cgi.td { "Source Url" } +
                           cgi.td {
-                            cgi.textarea('name' => 'srcurl', 'cols' => '100', 'rows' => '4') { params.src_url }
+                            cgi.textarea('name' => 'srcurl', 'cols' => '100', 'rows' => '4') {
+                              params.src_url ? params.src_url : "http://openrouteservice.org/index.php?start=8.6763877,49.417067&end=8.6890048,49.4176254&via=8.6821383,49.4253860%20&pref=Pedestrian&lang=en&noMotorways=false&noTollways=false"
+                            }
                           }
                     } +
                         #cgi.tr {
@@ -454,7 +467,7 @@ class RouteConverter
                         cgi.tr {
                           cgi.td {
                             cgi.input('type' => "submit", 'name' => "process", 'value' => "convert") +
-                            cgi.input('type' => "submit", 'name' => "kml", 'value' => "kml")
+                            cgi.input('type' => "submit", 'name' => "kml", 'value' => "show")
                           }
                         }
                     }
@@ -468,7 +481,7 @@ class RouteConverter
                               }
                         } +
                         cgi.tr {
-                          cgi.td { "Result GPX" } +
+                          cgi.td { "Result KML" } +
                               cgi.td {
                                 cgi.textarea('name' => 'resgpx', 'cols' => '100', 'rows' => '10') { params.res_gpx }
                               }
@@ -610,6 +623,7 @@ class RouteConverter
         res = kml(cgi,params, name)
         log "after kml"
         res
+
       end
     }
     return cgi
