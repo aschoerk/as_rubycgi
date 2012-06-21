@@ -1,4 +1,5 @@
 #!/usr/bin/ruby -w
+# small comment
 $:.unshift File.join(File.dirname(__FILE__), '.', '')
 require 'cgi'
 require 'xmlsimple'
